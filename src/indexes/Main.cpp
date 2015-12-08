@@ -1,5 +1,6 @@
 #include "SuffixArray.h"
 #include "SuffixArray2.h"
+#include "SuffixTree.h"
 #include <cstring>
 #define SIZE (1<<27)
 
@@ -20,4 +21,7 @@ int main(int argc, char* argv[]){
 
 		delete array;
 	}
+
+	SuffixTree tree("tree.dot");
+	tree.build("abcdefgh", 8);
 }

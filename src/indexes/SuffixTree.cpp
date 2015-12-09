@@ -12,13 +12,69 @@ void SuffixTree::build(const char* text, size_t n) {
 	this->n = n;
 	
 	nodes.push_back(SuffixTreeNode(0,0)); //A raiz
+	ImplicitPointer current(0, 1, 0);
 
-	//dummy nodes, só para testar
-	for(int i = 0; i < n; ++i ){
-		map<char,int>& children = *(nodes.back().children);
-		children[text[i]] = int(nodes.size());
-		nodes.push_back(SuffixTreeNode(i, i+1));
-		printTree(i);
+	for(int i = 0; i < n; ++i){
+		int wprime = -1;
+		
+		int w;
+		bool isTerm;
+		for(w = split(current, text[i], &isTerm); !isTerm; w = split(current, text[i], &isTerm)) {			
+			//Cria uma folha representando o sufixo [i..] e 'pendura' em w 			
+			nodes[w].children[text[i]] = nodes.size();
+			nodes.push_back(SuffixTreeNode(i, -1));
+	
+			if(wprime != -1)
+				nodes[wprime].sl = w.v;
+
+			wprime = w;	
+			if(current.v == 0 && current.st == 1 && current.end == 0) break;
+			current = followSuffixLink(current);
+			canonise(current);
+		}
+		if(wprime != -1)
+			nodes[wprime].sl = w.v;
+
+		//Desce do terminador utilizando a aresta certa		
+		if(current.end >= current.st)
+			++current.end;
+		else
+			current.st = current.end = i;
+			
+		canonise(current);
+	}
+}
+
+int SuffixTree::split(ImplicitPointer prt, char ch, bool* isTerm){
+	if(prt.end >= prt.st) {//meio de aresta
+		if(text[prt.end+1] == ch){
+			*isTerm = true;
+			return prt.v;
+		} else {
+			
+		}
+	}
+
+}
+
+ImplicitPointer SuffixTree::followSuffixLink(ImplicitPointer prt){
+	if(prt.v != 0)
+		prt.v = nodes[prt.v].sl;
+	else
+		++prt.st;
+		
+	return prt;
+}
+
+void SuffixTree::canonise(ImplicitPointer& prt){
+	while(true) {
+		int from = prt.v, to = nodes[from].children[text[prt].st];
+		int size = nodes[to].end - nodes[to].start;
+		if(size >= prt.end-prt.st+1){
+			prt.st += size;
+			prt.v = to;
+		}else
+			break;
 	}
 }
 

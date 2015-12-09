@@ -8,6 +8,12 @@ using std::vector;
 #include "SuffixTreeNode.h"
 #include "Index.h"
 
+struct ImplicitPointer {
+	int v, st, end;
+
+	ImplicitPointer(int vv, int ss, int ee): v(vv), st(ss), end(ee){}
+};
+
 class SuffixTree : public Index {
 public:
 	SuffixTree(const char* dotFileName);

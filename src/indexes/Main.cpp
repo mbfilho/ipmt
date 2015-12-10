@@ -23,5 +23,5 @@ int main(int argc, char* argv[]){
 	}
 
 	SuffixTree tree("tree.dot");
-	tree.build("abcdefgh", 8);
+	tree.build("ABABABC", 7);
 }

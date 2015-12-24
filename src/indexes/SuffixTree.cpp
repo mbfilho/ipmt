@@ -115,7 +115,7 @@ void SuffixTree::canonise(ImplicitPointer& prt){
 void SuffixTree::printMatchingLines(const char* pat, size_t m) {
 	int i = 0; //tamanho do prefixo de pat já casado
 	int cur = 0; //locus do vértice logo abaixo do locus de 'pat'
-	int height; //altura do vértice 'cur'
+	int height = 0; //altura do vértice 'cur'
 	
 	while(i < m){//enquanto o padrão não foi todo consumido
 		if(!nodes[cur].hasChild(pat[i]))
@@ -137,22 +137,30 @@ void SuffixTree::printMatchingLines(const char* pat, size_t m) {
 	else {
 		map<pair<int,int>, set<int> > linesAndPositions; //Para cada linha (stPos, endPos) guardamos o início de cada casamento
 		getAllLines(pat, m, cur, height, linesAndPositions); //preenche o mapa com todas as linhas. Para isso é preciso achar todas as folhas abaixo de 'cur'
+
 		int cont = 0;
 		for(map<pair<int,int>, set<int> >::iterator it = linesAndPositions.begin(); it  != linesAndPositions.end(); ++it){
-			int lastColoredChar = -1;
-			for(int i = (it->first).first; i <= (it->first).second; ++i){
-				if(it->second.count(i)){
-					++cont;
-					if(lastColoredChar == -1)
-						printf("\033[31m");	
-					lastColoredChar = i + m - 1;
-				}
-				printf("%c", text[i]);
-				if(i == lastColoredChar) {
-					lastColoredChar = -1;
+			int pos = (it->first).first, lastPos = (it->first).second; //os limites da linha atual
+			
+			for(set<int>::iterator matching = (it->second).begin(); matching != (it->second).end(); ++matching){
+				++cont;
+				if(pos < *matching) { 
+					printf("%.*s", *matching - pos, text + pos);
+					printf("\033[31m");
+					printf("%s", pat);
 					printf("\033[0m");	
+					pos = *matching + m;
+				} else if(*matching + m > pos){
+					printf("\033[31m");
+					printf("%.*s", int(*matching + m - pos), pat + (pos-*matching));
+					printf("\033[0m");	
+					pos = *matching + m;
 				}
 			}
+
+			if(pos <= lastPos)
+				printf("%.*s", lastPos - pos + 1, text + pos);
+
 			printf("\n");
 		}
 		printf("Occs: %d\n", cont);
@@ -193,6 +201,7 @@ void SuffixTree::getLine(int matchStart, map<pair<int,int>, set<int> > &linesAnd
 
 	linesAndPositions[line].insert(matchStart);
 }
+
 void SuffixTree::printTree(int step) {
 	if(!dotFile)
 		return;

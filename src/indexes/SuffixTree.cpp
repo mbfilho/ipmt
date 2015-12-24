@@ -62,38 +62,81 @@ void SuffixTree::fixTree(int node){
 	}
 }
 
-void SuffixTree::printMatchingLines(const char* pat, size_t m) {
-	ImplicitPointer matchPoint(0,1,0);//eh o locus do prefixo de pat com i caracteres
-	
-	int i = 0, to, j, height = 0;
-	//Invariante: no início de cada iteração matchPoint é explícito
-	while(i < m){
-		if(!nodes[matchPoint.v].hasChild(pat[i]))
+int SuffixTree::split(ImplicitPointer prt, char ch, bool* isTerm){
+	if(prt.isImplicit()) {
+		int to = nodes[prt.v].getChild(text[prt.st]);
+		*isTerm = text[nodes[to].start + prt.strSize()] == ch;
+
+		if(*isTerm) 
+			return prt.v;
+		else { //Aqui ocorre a criação de um novo nó interno
+			int w = nodes.size(); //O índice do novo nó
+
+			nodes.push_back(SuffixTreeNode(nodes[to].start, nodes[to].start + prt.strSize()-1));//O novo nó em si, com sua aresta incidente
+
+			nodes[to].start += prt.strSize(); //Atualiza a aresta do no que agora será filho de w
+			nodes[w].setChild(text[nodes[to].start], to);//Pendura 'to' em w
+			nodes[prt.v].setChild(text[nodes[w].start], w);//Pendura w em v, substituindo 'to'
+			
+			return w;	
+		}
+	} else { //Não é implícito.
+		*isTerm = nodes[prt.v].hasChild(ch);
+		return prt.v;
+	}
+}
+
+ImplicitPointer SuffixTree::followSuffixLink(ImplicitPointer prt){
+	int antes = prt.v;
+	if(prt.v != 0)
+		prt.v = nodes[prt.v].sl;
+	else
+		++prt.st;
+	if(prt.v == -1) {
+		printf("SL de %d he -1!!!\n", antes);
+		throw 2;
+	}
+
+	return prt;
+}
+
+void SuffixTree::canonise(ImplicitPointer& prt){
+	while(prt.isImplicit()) {
+		int from = prt.v, to = nodes[from].getChild(text[prt.st]);
+		int size = (nodes[to].end == -1? n-1 : nodes[to].end) - nodes[to].start + 1;
+		if(size <= prt.strSize()){
+			prt.st += size;
+			prt.v = to;
+		}else
 			break;
-		to = nodes[matchPoint.v].getChild(pat[i]);
-		j = nodes[to].start;
-		
+	}
+}
+
+void SuffixTree::printMatchingLines(const char* pat, size_t m) {
+	int i = 0; //tamanho do prefixo de pat já casado
+	int cur = 0; //locus do vértice logo abaixo do locus de 'pat'
+	int height; //altura do vértice 'cur'
+	
+	while(i < m){//enquanto o padrão não foi todo consumido
+		if(!nodes[cur].hasChild(pat[i]))
+			break;
+		cur = nodes[cur].getChild(pat[i]);
+		height += nodes[cur].end - nodes[cur].start + 1;
+
 		//Tenta consumir os caracteres da aresta
-		while(i < m && j <= nodes[to].end && pat[i] == text[j]) 
+		int j = nodes[cur].start;
+		while(i < m && j <= nodes[cur].end && pat[i] == text[j]) 
 			++i, ++j;
 
 		//Houve um mismatch
-		if(i < m && j <= nodes[to].end) 
+		if(i < m && j <= nodes[cur].end) 
 			break;
-
-		//A aresta foi toda consumida: 'to' agora é o vértice explícito de matchPoint	
-		if(j > nodes[to].end){ 
-			matchPoint.v = to;
-		}else // O padrão foi todo consumido: matchPoint se torna implícito, mas a iteração acaba agora.
-			matchPoint.st = nodes[to].start, matchPoint.end = j - 1;
-		height += nodes[to].end - nodes[to].start + 1;
 	}
 
 	if(i < m) printf("Nenhuma ocorrência encontrada\n");
 	else {
-		printf("Size %d\n", height);
-		map<pair<int,int>, set<int> > linesAndPositions;
-		getAllLines(pat, m, to, height, linesAndPositions);
+		map<pair<int,int>, set<int> > linesAndPositions; //Para cada linha (stPos, endPos) guardamos o início de cada casamento
+		getAllLines(pat, m, cur, height, linesAndPositions); //preenche o mapa com todas as linhas. Para isso é preciso achar todas as folhas abaixo de 'cur'
 		int cont = 0;
 		for(map<pair<int,int>, set<int> >::iterator it = linesAndPositions.begin(); it  != linesAndPositions.end(); ++it){
 			int lastColoredChar = -1;
@@ -150,58 +193,6 @@ void SuffixTree::getLine(int matchStart, map<pair<int,int>, set<int> > &linesAnd
 
 	linesAndPositions[line].insert(matchStart);
 }
-
-
-int SuffixTree::split(ImplicitPointer prt, char ch, bool* isTerm){
-	if(prt.isImplicit()) {
-		int to = nodes[prt.v].getChild(text[prt.st]);
-		*isTerm = text[nodes[to].start + prt.strSize()] == ch;
-
-		if(*isTerm) 
-			return prt.v;
-		else { //Aqui ocorre a criação de um novo nó interno
-			int w = nodes.size(); //O índice do novo nó
-
-			nodes.push_back(SuffixTreeNode(nodes[to].start, nodes[to].start + prt.strSize()-1));//O novo nó em si, com sua aresta incidente
-
-			nodes[to].start += prt.strSize(); //Atualiza a aresta do no que agora será filho de w
-			nodes[w].setChild(text[nodes[to].start], to);//Pendura 'to' em w
-			nodes[prt.v].setChild(text[nodes[w].start], w);//Pendura w em v, substituindo 'to'
-			
-			return w;	
-		}
-	} else { //Não é implícito.
-		*isTerm = nodes[prt.v].hasChild(ch);
-		return prt.v;
-	}
-}
-
-ImplicitPointer SuffixTree::followSuffixLink(ImplicitPointer prt){
-	int antes = prt.v;
-	if(prt.v != 0)
-		prt.v = nodes[prt.v].sl;
-	else
-		++prt.st;
-	if(prt.v == -1) {
-		printf("SL de %d he -1!!!\n", antes);
-		throw 2;
-	}
-
-	return prt;
-}
-
-void SuffixTree::canonise(ImplicitPointer& prt){
-	while(prt.isImplicit()) {
-		int from = prt.v, to = nodes[from].getChild(text[prt.st]);
-		int size = (nodes[to].end == -1? n-1 : nodes[to].end) - nodes[to].start + 1;
-		if(size <= prt.strSize()){
-			prt.st += size;
-			prt.v = to;
-		}else
-			break;
-	}
-}
-
 void SuffixTree::printTree(int step) {
 	if(!dotFile)
 		return;

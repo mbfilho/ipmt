@@ -50,17 +50,19 @@ void SuffixTree::build(const char* text, size_t n) {
 		canonise(current);
 		printTree(i);
 	}
-	fixTree(0);
+	fixTree(nodes[0]);
 	if(dotFile)
 		fclose(dotFile);
 }
 
-void SuffixTree::fixTree(int node){
-	if(nodes[node].isLeaf()){
-		nodes[node].end = n-1;
+void SuffixTree::fixTree(SuffixTreeNode& node){
+	if(node.isLeaf()){
+		node.end = n-1;
+		node.leaves = 1;
 	}else{
-		for(map<char,int>::iterator it = (nodes[node].children)->begin(); it != (nodes[node].children)->end(); ++it){
-			fixTree(it->second);
+		for(map<char,int>::iterator it = (node.children)->begin(); it != (node.children)->end(); ++it){
+			fixTree(nodes[it->second]);
+			node.leaves += nodes[it->second].leaves;
 		}
 	}
 }
@@ -137,7 +139,7 @@ void SuffixTree::printMatchingLines(const char* pat, size_t m) {
 	if(i < m) printf("Nenhuma ocorrência encontrada\n");
 	else {
 		map<pair<int,int>, set<int> > linesAndPositions; //Para cada linha (stPos, endPos) guardamos o início de cada casamento
-		getAllLines(pat, m, cur, height, linesAndPositions); //preenche o mapa com todas as linhas. Para isso é preciso achar todas as folhas abaixo de 'cur'
+		getAllLines(pat, m, nodes[cur], height, linesAndPositions); //preenche o mapa com todas as linhas. Para isso é preciso achar todas as folhas abaixo de 'cur'
 
 		int cont = 0;
 		for(map<pair<int,int>, set<int> >::iterator it = linesAndPositions.begin(); it  != linesAndPositions.end(); ++it){
@@ -174,12 +176,13 @@ void SuffixTree::printMatchingLines(const char* pat, size_t m) {
 * faz-se uma busca em profundidade para se encontrar todas as folhas
 * que estão na subárvore de 'node'. As linhas são salvas no mapa.
 */
-void SuffixTree::getAllLines(const char* pat, size_t m, int node, int nodeHeight, map<pair<int,int>, set<int> > &linesAndPositions ) {
-	if(nodes[node].isLeaf()) //É folha
+void SuffixTree::getAllLines(const char* pat, size_t m, SuffixTreeNode& node, int nodeHeight, map<pair<int,int>, set<int> > &linesAndPositions ) {
+	if(node.isLeaf()) //É folha
 		getLine(n - nodeHeight, linesAndPositions);	
 	else {
-		for(map<char,int>::iterator it = (nodes[node].children)->begin(); it != (nodes[node].children)->end(); ++it){
-			int next = it->second, edgeSize = nodes[next].end - nodes[next].start + 1;
+		for(map<char,int>::iterator it = (node.children)->begin(); it != (node.children)->end(); ++it){
+			SuffixTreeNode& next = nodes[it->second];
+			int edgeSize = next.end - next.start + 1;
 			getAllLines(pat, m, next, nodeHeight + edgeSize, linesAndPositions); 
 		}
 	}

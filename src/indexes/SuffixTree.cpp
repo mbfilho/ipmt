@@ -48,7 +48,8 @@ void SuffixTree::build(const char* text, size_t n) {
 		printTree(i);
 	}
 	fixTree(0);
-	fclose(dotFile);
+	if(dotFile)
+		fclose(dotFile);
 }
 
 void SuffixTree::fixTree(int node){
@@ -218,7 +219,7 @@ void SuffixTree::_printTreeRec(int cur, int step){
 		if(strlen(buffer) != labelSize){
 			 throw false;
 		}
-		fprintf(dotFile, "%d -> %d [label=\"%.*s (%d,%d)\"]\n", cur, it->second, labelSize, text + next.start, next.start, next.end);
+		fprintf(dotFile, "%d -> %d [label=\"%.*s\"]\n", cur, it->second, labelSize, text + next.start);
 
 		_printTreeRec(it->second, step);
 	}

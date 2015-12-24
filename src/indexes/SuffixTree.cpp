@@ -32,6 +32,9 @@ void SuffixTree::build(const char* text, size_t n) {
 			current = followSuffixLink(current);
 			canonise(current);
 		}
+
+		if(wprime != -1 && current.isImplicit()) throw "wth!";
+
 		if(!current.isImplicit() && wprime != -1){
 			nodes[wprime].sl = current.v;
 		}
@@ -92,10 +95,8 @@ ImplicitPointer SuffixTree::followSuffixLink(ImplicitPointer prt){
 		prt.v = nodes[prt.v].sl;
 	else
 		++prt.st;
-	if(prt.v == -1) {
-		printf("SL de %d he -1!!!\n", antes);
-		throw 2;
-	}
+
+	if(prt.v == -1) throw 2;
 
 	return prt;
 }

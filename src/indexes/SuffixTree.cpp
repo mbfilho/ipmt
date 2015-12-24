@@ -94,10 +94,12 @@ void SuffixTree::printMatchingLines(const char* pat, size_t m) {
 		printf("Size %d\n", height);
 		map<pair<int,int>, set<int> > linesAndPositions;
 		printAllLines(pat, m, height, to, linesAndPositions);
+		int cont = 0;
 		for(map<pair<int,int>, set<int> >::iterator it = linesAndPositions.begin(); it  != linesAndPositions.end(); ++it){
 			int lastColoredChar = -1;
-			for(int i = (it->first).first; i < (it->first).second; ++i){
+			for(int i = (it->first).first; i <= (it->first).second; ++i){
 				if(it->second.count(i)){
+					++cont;
 					if(lastColoredChar == -1)
 						printf("\033[31m");	
 					lastColoredChar = i + m - 1;
@@ -110,13 +112,14 @@ void SuffixTree::printMatchingLines(const char* pat, size_t m) {
 			}
 			printf("\n");
 		}
+		printf("Occs: %d\n", cont);
 
 	}
 }
 
 void SuffixTree::printAllLines(const char* pat, size_t m, int suffixSize, int node, map<pair<int,int>, set<int> > &linesAndPositions ) {
 	if(nodes[node].isLeaf()){ //É folha
-		printLine(text, n - 1 - suffixSize + 1, linesAndPositions);	
+		getLine(n - suffixSize, linesAndPositions);	
 	} else {
 		for(map<char,int>::iterator it = (nodes[node].children)->begin(); it != (nodes[node].children)->end(); ++it){
 			int next = it->second, edgeSize;
@@ -126,19 +129,22 @@ void SuffixTree::printAllLines(const char* pat, size_t m, int suffixSize, int no
 	}
 }
 
+/*
+* Recupera a linha que contém o casamento iniciado em 'matchStart'. 
+* Preenche o mapa {linha -> posição do matching}.
+*/
+void SuffixTree::getLine(int matchStart, map<pair<int,int>, set<int> > &linesAndPositions ) {
+	int lineSt = matchStart, lineEnd = matchStart;
 
-void SuffixTree::printLine(const char* text, int matchStart, map<pair<int,int>, set<int> > &linesAndPositions ) {
-	int i = matchStart;
-	while(i > 0 && text[i] != '\n') 
-		--i;
-	if(text[i] == '\n') ++i;
-	int f = matchStart;
-	while(f < n-1 && text[f] != '\n') ++f;
-	if(text[f] == '\n') --f;
-	pair<int,int> line(i,f);
+	while(lineSt > 0 && text[lineSt] != '\n') --lineSt;
+	if(text[lineSt] == '\n') ++lineSt;
+	
+	while(lineEnd < n-1 && text[lineEnd] != '\n') ++lineEnd;
+	if(text[lineEnd] == '\n') --lineEnd;
+
+	pair<int,int> line(lineSt,lineEnd);
+
 	linesAndPositions[line].insert(matchStart);
-	//printf("(%d,%d) -> %d\n", i, f, matchStart);
-	//printf("%.*s\n", f-i+1, text + i);
 }
 
 

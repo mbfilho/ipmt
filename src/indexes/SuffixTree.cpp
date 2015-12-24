@@ -115,7 +115,7 @@ void SuffixTree::canonise(ImplicitPointer& prt){
 	}
 }
 
-void SuffixTree::printMatchingLines(const char* pat, size_t m) {
+void SuffixTree::findMatchings(const char* pat, size_t m, bool countOnly) {
 	int i = 0; //tamanho do prefixo de pat já casado
 	int cur = 0; //locus do vértice logo abaixo do locus de 'pat'
 	int height = 0; //altura do vértice 'cur'
@@ -135,9 +135,13 @@ void SuffixTree::printMatchingLines(const char* pat, size_t m) {
 		if(i < m && j <= nodes[cur].end) 
 			break;
 	}
+	int occs = 0;
+	if(i == m)
+		occs = nodes[cur].leaves;
+	printf("%d ocorrências encontradas\n", occs);
 
-	if(i < m) printf("Nenhuma ocorrência encontrada\n");
-	else {
+	//imprime as ocorrências
+	if(!countOnly && i == m) {
 		map<pair<int,int>, set<int> > linesAndPositions; //Para cada linha (stPos, endPos) guardamos o início de cada casamento
 		getAllLines(pat, m, nodes[cur], height, linesAndPositions); //preenche o mapa com todas as linhas. Para isso é preciso achar todas as folhas abaixo de 'cur'
 
@@ -166,8 +170,7 @@ void SuffixTree::printMatchingLines(const char* pat, size_t m) {
 
 			printf("\n");
 		}
-		printf("Occs: %d\n", cont);
-
+		if(occs != cont) throw "save-us!";
 	}
 }
 

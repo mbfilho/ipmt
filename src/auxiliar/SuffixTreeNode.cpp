@@ -9,6 +9,7 @@ SuffixTreeNode::SuffixTreeNode(int start, int end) {
 	this->end = end;
 	children = new map<char, int>();
 	sl = -1;
+	leaves = 0;
 }
 
 void SuffixTreeNode::setChild(char ch, int node) {

@@ -43,15 +43,15 @@ public:
 	const char* text;
 	size_t n;
 
-	void printMatchingLines(const char* pat, size_t m); 
+	void findMatchings(const char* pat, size_t m, bool countOnly); 
 private:
-	void fixTree(int node);
+	void fixTree(SuffixTreeNode& node);
 
 	void printTree(int step);
 	void _printTreeRec(int cur, int step); 
 
 
-	void getAllLines(const char* pat, size_t m, int node, int nodeHeight, map<pair<int,int>, set<int> >& linesAndPositions);
+	void getAllLines(const char* pat, size_t m, SuffixTreeNode& node, int nodeHeight, map<pair<int,int>, set<int> >& linesAndPositions);
 	void getLine(int matchStart, map<pair<int,int>, set<int> >& linesAndPositions);
 };
 

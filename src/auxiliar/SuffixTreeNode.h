@@ -19,6 +19,9 @@ public:
 	
 	//O suffixLink
 	int sl;
+	
+	//Quantidade de folhas na subárvore enraizada por este nó
+	int leaves;
 
 	// Lista de adjacência. Por enquanto é um map.
 	map<char, int>* children;	

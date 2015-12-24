@@ -26,7 +26,7 @@ int main(int argc, char* argv[]){
 		size_t read = fread(buffer, sizeof(char), SIZE-2, in);
 		if(buffer[read-1] == '\n') --read;
 		buffer[read] = '$', buffer[read+1] = 0;
-		SuffixTree tree("tree.dot");
+		SuffixTree tree(NULL);
 //		printf("Buinding tree for the text |%s|\n", buffer);
 		if(read+1 != strlen(buffer)) throw "xau";
 		tree.build(buffer, read+1);
@@ -37,7 +37,7 @@ int main(int argc, char* argv[]){
 				int m = strlen(line);
 				if(line[m-1] == '\n') line[--m] = 0;
 				printf("MatchingLines for Pattern %s\n", line);
-				tree.printMatchingLines(line, size_t(m));
+				tree.findMatchings(line, size_t(m), false);
 			}
 		}else printf("File |%s| not found\n", argv[2]);
 	}else printf("File |%s| not found\n", argv[1]);

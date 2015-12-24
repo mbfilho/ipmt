@@ -51,7 +51,7 @@ private:
 	void _printTreeRec(int cur, int step); 
 
 
-	void printAllLines(const char* pat, size_t m, int suffixSize, int nod, map<pair<int,int>, set<int> >& linesAndPositions);
+	void getAllLines(const char* pat, size_t m, int node, int nodeHeight, map<pair<int,int>, set<int> >& linesAndPositions);
 	void getLine(int matchStart, map<pair<int,int>, set<int> >& linesAndPositions);
 };
 

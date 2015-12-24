@@ -93,7 +93,7 @@ void SuffixTree::printMatchingLines(const char* pat, size_t m) {
 	else {
 		printf("Size %d\n", height);
 		map<pair<int,int>, set<int> > linesAndPositions;
-		printAllLines(pat, m, height, to, linesAndPositions);
+		getAllLines(pat, m, to, height, linesAndPositions);
 		int cont = 0;
 		for(map<pair<int,int>, set<int> >::iterator it = linesAndPositions.begin(); it  != linesAndPositions.end(); ++it){
 			int lastColoredChar = -1;
@@ -117,14 +117,18 @@ void SuffixTree::printMatchingLines(const char* pat, size_t m) {
 	}
 }
 
-void SuffixTree::printAllLines(const char* pat, size_t m, int suffixSize, int node, map<pair<int,int>, set<int> > &linesAndPositions ) {
-	if(nodes[node].isLeaf()){ //É folha
-		getLine(n - suffixSize, linesAndPositions);	
-	} else {
+/*
+* Recupera todas as linhas que contém o padrão 'pat'. Para isso, 
+* faz-se uma busca em profundidade para se encontrar todas as folhas
+* que estão na subárvore de 'node'. As linhas são salvas no mapa.
+*/
+void SuffixTree::getAllLines(const char* pat, size_t m, int node, int nodeHeight, map<pair<int,int>, set<int> > &linesAndPositions ) {
+	if(nodes[node].isLeaf()) //É folha
+		getLine(n - nodeHeight, linesAndPositions);	
+	else {
 		for(map<char,int>::iterator it = (nodes[node].children)->begin(); it != (nodes[node].children)->end(); ++it){
-			int next = it->second, edgeSize;
-			edgeSize = ((nodes[next].end == -1) ? n : nodes[next].end + 1) - nodes[next].start;
-			printAllLines(pat, m, suffixSize + edgeSize, next, linesAndPositions); 
+			int next = it->second, edgeSize = nodes[next].end - nodes[next].start + 1;
+			getAllLines(pat, m, next, nodeHeight + edgeSize, linesAndPositions); 
 		}
 	}
 }

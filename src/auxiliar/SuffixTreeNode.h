@@ -12,6 +12,7 @@ public:
 	void setChild(char ch, int node);
 	int getChild(char ch);
 	bool hasChild(char ch); 
+	bool isLeaf(); 
 			
 	//O rótulo da aresta (pai, este nó). [start, end]
 	int start, end;

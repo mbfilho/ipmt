@@ -10,7 +10,6 @@ SuffixTree::SuffixTree(const char* dotFileName) {
 void SuffixTree::build(const char* text, size_t n) {
 	this->text = text;
 	this->n = n;
-	
 	nodes.push_back(SuffixTreeNode(0,0)); //A raiz
 	ImplicitPointer current(0, 1, 0);
 	for(int i = 0; i < n; ++i){
@@ -33,9 +32,9 @@ void SuffixTree::build(const char* text, size_t n) {
 			current = followSuffixLink(current);
 			canonise(current);
 		}
-
-//		if(isTerm && wprime != -1)
-//			nodes[wprime].sl = w;
+		if(!current.isImplicit() && wprime != -1){
+			nodes[wprime].sl = current.v;
+		}
 
 		//Desce do terminador, se ele existir, utilizando a aresta certa		
 		if(isTerm) {
@@ -48,8 +47,99 @@ void SuffixTree::build(const char* text, size_t n) {
 		canonise(current);
 		printTree(i);
 	}
+	fixTree(0);
 	fclose(dotFile);
 }
+
+void SuffixTree::fixTree(int node){
+	if(nodes[node].isLeaf()){
+		nodes[node].end = n-1;
+	}else{
+		for(map<char,int>::iterator it = (nodes[node].children)->begin(); it != (nodes[node].children)->end(); ++it){
+			fixTree(it->second);
+		}
+	}
+}
+
+void SuffixTree::printMatchingLines(const char* pat, size_t m) {
+	ImplicitPointer matchPoint(0,1,0);//eh o locus do prefixo de pat com i caracteres
+	
+	int i = 0, to, j, height = 0;
+	//Invariante: no início de cada iteração matchPoint é explícito
+	while(i < m){
+		if(!nodes[matchPoint.v].hasChild(pat[i]))
+			break;
+		to = nodes[matchPoint.v].getChild(pat[i]);
+		j = nodes[to].start;
+		
+		//Tenta consumir os caracteres da aresta
+		while(i < m && j <= nodes[to].end && pat[i] == text[j]) 
+			++i, ++j;
+
+		//Houve um mismatch
+		if(i < m && j <= nodes[to].end) 
+			break;
+
+		//A aresta foi toda consumida: 'to' agora é o vértice explícito de matchPoint	
+		if(j > nodes[to].end){ 
+			matchPoint.v = to;
+		}else // O padrão foi todo consumido: matchPoint se torna implícito, mas a iteração acaba agora.
+			matchPoint.st = nodes[to].start, matchPoint.end = j - 1;
+		height += nodes[to].end - nodes[to].start + 1;
+	}
+
+	if(i < m) printf("Nenhuma ocorrência encontrada\n");
+	else {
+		printf("Size %d\n", height);
+		map<pair<int,int>, set<int> > linesAndPositions;
+		printAllLines(pat, m, height, to, linesAndPositions);
+		for(map<pair<int,int>, set<int> >::iterator it = linesAndPositions.begin(); it  != linesAndPositions.end(); ++it){
+			int lastColoredChar = -1;
+			for(int i = (it->first).first; i < (it->first).second; ++i){
+				if(it->second.count(i)){
+					if(lastColoredChar == -1)
+						printf("\033[31m");	
+					lastColoredChar = i + m - 1;
+				}
+				printf("%c", text[i]);
+				if(i == lastColoredChar) {
+					lastColoredChar = -1;
+					printf("\033[0m");	
+				}
+			}
+			printf("\n");
+		}
+
+	}
+}
+
+void SuffixTree::printAllLines(const char* pat, size_t m, int suffixSize, int node, map<pair<int,int>, set<int> > &linesAndPositions ) {
+	if(nodes[node].isLeaf()){ //É folha
+		printLine(text, n - 1 - suffixSize + 1, linesAndPositions);	
+	} else {
+		for(map<char,int>::iterator it = (nodes[node].children)->begin(); it != (nodes[node].children)->end(); ++it){
+			int next = it->second, edgeSize;
+			edgeSize = ((nodes[next].end == -1) ? n : nodes[next].end + 1) - nodes[next].start;
+			printAllLines(pat, m, suffixSize + edgeSize, next, linesAndPositions); 
+		}
+	}
+}
+
+
+void SuffixTree::printLine(const char* text, int matchStart, map<pair<int,int>, set<int> > &linesAndPositions ) {
+	int i = matchStart;
+	while(i > 0 && text[i] != '\n') 
+		--i;
+	if(text[i] == '\n') ++i;
+	int f = matchStart;
+	while(f < n-1 && text[f] != '\n') ++f;
+	if(text[f] == '\n') --f;
+	pair<int,int> line(i,f);
+	linesAndPositions[line].insert(matchStart);
+	//printf("(%d,%d) -> %d\n", i, f, matchStart);
+	//printf("%.*s\n", f-i+1, text + i);
+}
+
 
 int SuffixTree::split(ImplicitPointer prt, char ch, bool* isTerm){
 	if(prt.isImplicit()) {
@@ -76,11 +166,16 @@ int SuffixTree::split(ImplicitPointer prt, char ch, bool* isTerm){
 }
 
 ImplicitPointer SuffixTree::followSuffixLink(ImplicitPointer prt){
+	int antes = prt.v;
 	if(prt.v != 0)
 		prt.v = nodes[prt.v].sl;
 	else
 		++prt.st;
-		
+	if(prt.v == -1) {
+		printf("SL de %d he -1!!!\n", antes);
+		throw 2;
+	}
+
 	return prt;
 }
 
@@ -118,8 +213,12 @@ void SuffixTree::_printTreeRec(int cur, int step){
 	for(map<char,int>::iterator it = node.children->begin(); it != node.children->end(); ++it) {
 		SuffixTreeNode& next = nodes[it->second];
 		int labelSize = (next.end == -1 ? step : next.end) - next.start + 1;
-
-		fprintf(dotFile, "%d -> %d [label=%.*s]\n", cur, it->second, labelSize, text + next.start);
+		char buffer[10000];
+		sprintf(buffer, "%.*s", labelSize, text + next.start);
+		if(strlen(buffer) != labelSize){
+			 throw false;
+		}
+		fprintf(dotFile, "%d -> %d [label=\"%.*s (%d,%d)\"]\n", cur, it->second, labelSize, text + next.start, next.start, next.end);
 
 		_printTreeRec(it->second, step);
 	}

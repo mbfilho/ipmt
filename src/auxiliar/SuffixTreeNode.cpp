@@ -22,3 +22,7 @@ int SuffixTreeNode::getChild(char ch) {
 bool SuffixTreeNode::hasChild(char ch) {
 	return (*children).count(ch) != 0;
 }
+
+bool SuffixTreeNode::isLeaf() {
+	return (*children).empty();
+}

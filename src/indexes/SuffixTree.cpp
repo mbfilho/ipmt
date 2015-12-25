@@ -10,7 +10,8 @@ SuffixTree::SuffixTree(const char* dotFileName) {
 void SuffixTree::build(const char* text, size_t n) {
 	this->text = text;
 	this->n = n;
-	nodes.push_back(SuffixTreeNode(0,0)); //A raiz
+
+	insertNodeIntoTree(0, 0); //A raiz
 	ImplicitPointer current(0, 1, 0);
 	for(int i = 0; i < n; ++i){
 		int wprime = -1;
@@ -19,15 +20,14 @@ void SuffixTree::build(const char* text, size_t n) {
 		
 		for(w = split(current, text[i], &isTerm); !isTerm; w = split(current, text[i], &isTerm)) {			
 			//Cria uma folha representando o sufixo [i..] e 'pendura' em w 			
-			nodes.push_back(SuffixTreeNode(i, -1));
-			if(w >= nodes.size()) throw "xau";
-			if(nodes.at(w).getChild(text[i], text, nodes) != -1) throw '*';
-			nodes.at(w).addChild(nodes.size()-1, nodes.back());
+			int leaf = insertNodeIntoTree(i, -1);
+			assert(nodes.at(w).getChild(text[i], text, nodes) == -1 && "O no atual jah tem o caracter que esta sendo acrescentado!"); 
+			
+			nodes.at(w).addChild(leaf, nodes.at(leaf));
 
 			if(wprime != -1)
-				nodes.at(wprime).sl = w;
+				suffixLinks.at(wprime) = w;
 
-	
 			wprime = w;	
 			if(current.v == 0 && !current.isImplicit()) {
 				isTerm = false; //Sinaliza que o terminador não existe
@@ -37,12 +37,11 @@ void SuffixTree::build(const char* text, size_t n) {
 			current = followSuffixLink(current);
 			canonise(current);
 		}
+	
+		assert(wprime == -1 || !current.isImplicit());
 
-		if(wprime != -1 && current.isImplicit()) throw "wth!";
-
-		if(!current.isImplicit() && wprime != -1){
-			nodes.at(wprime).sl = current.v;
-		}
+		if(!current.isImplicit() && wprime != -1)
+			suffixLinks[wprime] = current.v;
 
 		//Desce do terminador, se ele existir, utilizando a aresta certa		
 		if(isTerm) {
@@ -81,8 +80,7 @@ int SuffixTree::split(ImplicitPointer prt, char ch, bool* isTerm){
 			return prt.v;
 		else {//Aqui 'prt' se torna explícito
 
-			int w = nodes.size(); //O novo locus de 'prt'
-			nodes.push_back(SuffixTreeNode(nodes.at(toIdx).start, nodes.at(toIdx).start + prt.strSize() - 1)); //a aresta (prt.v, w) é um prefixo de (prt.v, to)
+			int w = insertNodeIntoTree(nodes.at(toIdx).start, nodes.at(toIdx).start + prt.strSize() - 1); //O novo locus explícito de 'prt'. A aresta (prt.v, w) é um prefixo de (prt.v, to)
 
 			nodes.at(toIdx).start += prt.strSize(); //a futura aresta (w, to) é um sufixo da antiga aresta (prt.v, w)
 			nodes.at(w).firstChild = toIdx; //pendura 'to' em 'w'
@@ -111,11 +109,11 @@ int SuffixTree::split(ImplicitPointer prt, char ch, bool* isTerm){
 
 ImplicitPointer SuffixTree::followSuffixLink(ImplicitPointer prt){
 	if(prt.v != 0)
-		prt.v = nodes.at(prt.v).sl;
+		prt.v = suffixLinks[prt.v];
 	else
 		++prt.st;
 
-	if(prt.v == -1) throw 2;
+	assert(prt.v != -1);
 
 	return prt;
 }
@@ -130,6 +128,14 @@ void SuffixTree::canonise(ImplicitPointer& prt){
 		}else
 			break;
 	}
+}
+
+int SuffixTree::insertNodeIntoTree(int lblStart, int lblEnd) {
+	int newNodeIdx = nodes.size();
+	nodes.push_back(SuffixTreeNode(lblStart, lblEnd));
+	suffixLinks.push_back(-1);
+
+	return newNodeIdx;
 }
 
 void SuffixTree::findMatchings(const char* pat, size_t m, bool countOnly) {
@@ -187,7 +193,7 @@ void SuffixTree::findMatchings(const char* pat, size_t m, bool countOnly) {
 
 			printf("\n");
 		}
-		if(occs != cont) throw "save-us!";
+		assert(occs == cont && "Numero de ocorrencias diferem");
 	}
 }
 
@@ -243,8 +249,8 @@ void SuffixTree::printTree(int step) {
 void SuffixTree::_printTreeRec(int cur, int step){
 	SuffixTreeNode& node = nodes.at(cur);
 
-	if(node.sl != -1)
-		fprintf(dotFile, "%d -> %d [style=dotted,color=red]\n", cur, node.sl);
+	if(suffixLinks[cur] != -1)
+		fprintf(dotFile, "%d -> %d [style=dotted,color=red]\n", cur, suffixLinks[cur]);
 
 	for(int nt = node.firstChild; nt != -1; nt = nodes.at(nt).sibling){
 		SuffixTreeNode& next = nodes.at(nt);

@@ -10,8 +10,9 @@ SuffixTreeNode::SuffixTreeNode(int start, int end) {
 	leaves = 0;
 }
 
-void SuffixTreeNode::addChild(int nodeIdx, SuffixTreeNode& node) {
+void SuffixTreeNode::addChild(int nodeIdx, SuffixTreeNode& node, vector<SuffixTreeNode>& nodes) {
 	node.sibling = firstChild;
+	if(firstChild != -1) nodes.at(firstChild).previous = nodeIdx;
 	firstChild = nodeIdx;	
 }
 

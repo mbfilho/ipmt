@@ -26,7 +26,7 @@ int main(int argc, char* argv[]){
 		size_t read = fread(buffer, sizeof(char), SIZE-2, in);
 		if(buffer[read-1] == '\n') --read;
 		buffer[read] = '$', buffer[read+1] = 0;
-		SuffixTree tree("tree.dot");
+		SuffixTree tree(NULL);
 //		printf("Buinding tree for the text |%s|\n", buffer);
 		if(read+1 != strlen(buffer)) throw "xau";
 		tree.build(buffer, read+1);

@@ -8,7 +8,7 @@ public:
 	SuffixTreeNode();
 	SuffixTreeNode(int start, int end);
 
-	void addChild(int nodeIdx, SuffixTreeNode& node);
+	void addChild(int nodeIdx, SuffixTreeNode& node,  vector<SuffixTreeNode>& nodes);
 	int getChild(char ch, const char* text, vector<SuffixTreeNode>& nodes);
 	bool isLeaf(); 
 			

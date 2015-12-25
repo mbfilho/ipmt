@@ -23,7 +23,7 @@ void SuffixTree::build(const char* text, size_t n) {
 			int leaf = insertNodeIntoTree(i, -1);
 			assert(nodes.at(w).getChild(text[i], text, nodes) == -1 && "O no atual jah tem o caracter que esta sendo acrescentado!"); 
 			
-			nodes.at(w).addChild(leaf, nodes.at(leaf));
+			nodes.at(w).addChild(leaf, nodes.at(leaf), nodes);
 
 			if(wprime != -1)
 				suffixLinks.at(wprime) = w;

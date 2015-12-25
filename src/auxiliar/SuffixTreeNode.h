@@ -21,6 +21,7 @@ public:
 	int firstChild;
 
 	int sibling;
+	int previous;
 };
 
 

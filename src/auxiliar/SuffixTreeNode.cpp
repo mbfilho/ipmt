@@ -6,7 +6,7 @@ SuffixTreeNode::SuffixTreeNode() {
 SuffixTreeNode::SuffixTreeNode(int start, int end) {
 	this->start = start;
 	this->end = end;
-	firstChild = sibling = -1;
+	firstChild = sibling = previous = -1;
 	leaves = 0;
 }
 

@@ -87,17 +87,15 @@ int SuffixTree::split(ImplicitPointer prt, char ch, bool* isTerm){
 
 			//É preciso substituir 'to' por 'w' na lista de adjacência de 'prt.v'
 			nodes.at(w).sibling = nodes.at(toIdx).sibling;
+			if(nodes.at(toIdx).sibling != -1) nodes.at( nodes.at(toIdx).sibling ).previous = w;
 			if(nodes.at(prt.v).firstChild == toIdx) 
 				nodes.at(prt.v).firstChild = w;
 			else {
-				int prev = -1, cur = nodes.at(prt.v).firstChild;
-				while(cur != toIdx) {
-					prev = cur;
-					cur = nodes.at(cur).sibling;
-				}
+				int prev = nodes.at(toIdx).previous;
 				nodes.at(prev).sibling = w;
+				nodes.at(w).previous = prev;
 			}
-			nodes.at(toIdx).sibling = -1;
+			nodes.at(toIdx).sibling = nodes.at(toIdx).previous = -1;
 			
 			return w;	
 		}

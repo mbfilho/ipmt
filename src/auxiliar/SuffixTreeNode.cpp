@@ -1,5 +1,5 @@
 #include "SuffixTreeNode.h"
-
+#include <cstdio>
 
 SuffixTreeNode::SuffixTreeNode() {
 }
@@ -7,23 +7,32 @@ SuffixTreeNode::SuffixTreeNode() {
 SuffixTreeNode::SuffixTreeNode(int start, int end) {
 	this->start = start;
 	this->end = end;
-	children = new map<char, int>();
-	sl = -1;
+	sl = firstChild = sibling = -1;
 	leaves = 0;
 }
 
-void SuffixTreeNode::setChild(char ch, int node) {
-	(*children)[ch] = node;
+SuffixTreeNode::SuffixTreeNode(const SuffixTreeNode& ot) {
+	start = ot.start;
+	end = ot.end;
+	sl = ot.sl;
+	firstChild = ot.firstChild;
+	sibling = ot.sibling;
+	leaves = ot.leaves;
 }
 
-int SuffixTreeNode::getChild(char ch) {
-	return (*children)[ch];
+void SuffixTreeNode::addChild(int nodeIdx, SuffixTreeNode& node) {
+	node.sibling = firstChild;
+	firstChild = nodeIdx;	
 }
 
-bool SuffixTreeNode::hasChild(char ch) {
-	return (*children).count(ch) != 0;
+int SuffixTreeNode::getChild(char ch, const char* text, vector<SuffixTreeNode>& nodes) {
+	for(int cur = firstChild; cur != -1; cur = nodes[cur].sibling) {
+		if(text[nodes[cur].start] == ch)
+			return cur;
+	}
+	return -1;
 }
 
 bool SuffixTreeNode::isLeaf() {
-	return (*children).empty();
+	return firstChild == -1;
 }

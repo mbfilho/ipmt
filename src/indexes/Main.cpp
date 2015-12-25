@@ -5,7 +5,7 @@
 #define SIZE (1<<27)
 
 char buffer[SIZE];
-
+char line[10000];
 
 int main(int argc, char* argv[]){
 //	if(FILE* in = fopen(argv[1], "r")){
@@ -26,13 +26,13 @@ int main(int argc, char* argv[]){
 		size_t read = fread(buffer, sizeof(char), SIZE-2, in);
 		if(buffer[read-1] == '\n') --read;
 		buffer[read] = '$', buffer[read+1] = 0;
-		SuffixTree tree(NULL);
+		SuffixTree tree("tree.dot");
 //		printf("Buinding tree for the text |%s|\n", buffer);
 		if(read+1 != strlen(buffer)) throw "xau";
 		tree.build(buffer, read+1);
 		
 		if(FILE* que = fopen(argv[2], "r")) {
-			char line[1000];
+			
 			while(fgets(line, sizeof(line), que)) {
 				int m = strlen(line);
 				if(line[m-1] == '\n') line[--m] = 0;

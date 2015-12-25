@@ -1,17 +1,17 @@
 #ifndef SUFFIX_TREE_NODE
 #define SUFFIX_TREE_NODE
 
-#include <map>
-using std::map;
+#include <vector>
+using std::vector;
 
 class SuffixTreeNode {
 public:
 	SuffixTreeNode();
 	SuffixTreeNode(int start, int end);
+	SuffixTreeNode(const SuffixTreeNode& ot);
 
-	void setChild(char ch, int node);
-	int getChild(char ch);
-	bool hasChild(char ch); 
+	void addChild(int nodeIdx, SuffixTreeNode& node);
+	int getChild(char ch, const char* text, vector<SuffixTreeNode>& nodes);
 	bool isLeaf(); 
 			
 	//O rótulo da aresta (pai, este nó). [start, end]
@@ -23,8 +23,9 @@ public:
 	//Quantidade de folhas na subárvore enraizada por este nó
 	int leaves;
 
-	// Lista de adjacência. Por enquanto é um map.
-	map<char, int>* children;	
+	int firstChild;
+
+	int sibling;
 };
 
 

@@ -16,27 +16,33 @@ void SuffixTree::build(const char* text, size_t n) {
 		int wprime = -1;
 		int w;
 		bool isTerm;
+		printf("Ok# ? %d\n", current.strSize() == 0 || nodes[current.v].getChild(text[current.st], text, nodes) != -1);
 		for(w = split(current, text[i], &isTerm); !isTerm; w = split(current, text[i], &isTerm)) {			
 			//Cria uma folha representando o sufixo [i..] e 'pendura' em w 			
-			nodes[w].setChild(text[i], nodes.size());
 			nodes.push_back(SuffixTreeNode(i, -1));
-	
-			if(wprime != -1)
-				nodes[wprime].sl = w;
+			if(w >= nodes.size()) throw "xau";
+			if(nodes.at(w).getChild(text[i], text, nodes) != -1) throw '*';
+			nodes.at(w).addChild(nodes.size()-1, nodes.back());
 
+			if(wprime != -1)
+				nodes.at(wprime).sl = w;
+
+	
 			wprime = w;	
 			if(current.v == 0 && !current.isImplicit()) {
 				isTerm = false; //Sinaliza que o terminador não existe
 				break;
 			}
+
 			current = followSuffixLink(current);
+			printf("Ok* ? %d\n", current.strSize() == 0 || nodes[current.v].getChild(text[current.st], text, nodes) != -1);
 			canonise(current);
 		}
 
 		if(wprime != -1 && current.isImplicit()) throw "wth!";
 
 		if(!current.isImplicit() && wprime != -1){
-			nodes[wprime].sl = current.v;
+			nodes.at(wprime).sl = current.v;
 		}
 
 		//Desce do terminador, se ele existir, utilizando a aresta certa		
@@ -50,7 +56,7 @@ void SuffixTree::build(const char* text, size_t n) {
 		canonise(current);
 		printTree(i);
 	}
-	fixTree(nodes[0]);
+	fixTree(nodes.at(0));
 	if(dotFile)
 		fclose(dotFile);
 }
@@ -60,41 +66,43 @@ void SuffixTree::fixTree(SuffixTreeNode& node){
 		node.end = n-1;
 		node.leaves = 1;
 	}else{
-		for(map<char,int>::iterator it = (node.children)->begin(); it != (node.children)->end(); ++it){
-			fixTree(nodes[it->second]);
-			node.leaves += nodes[it->second].leaves;
+		for(int nt = node.firstChild; nt != -1; nt = nodes.at(nt).sibling) {
+			fixTree(nodes.at(nt));
+			node.leaves += nodes.at(nt).leaves;
 		}
 	}
 }
 
 int SuffixTree::split(ImplicitPointer prt, char ch, bool* isTerm){
 	if(prt.isImplicit()) {
-		int to = nodes[prt.v].getChild(text[prt.st]);
-		*isTerm = text[nodes[to].start + prt.strSize()] == ch;
+		int to = nodes.at(prt.v).getChild(text[prt.st], text, nodes);
+		*isTerm = text[nodes.at(to).start + prt.strSize()] == ch;
 
 		if(*isTerm) 
 			return prt.v;
-		else { //Aqui ocorre a criação de um novo nó interno
-			int w = nodes.size(); //O índice do novo nó
+		else {//Aqui 'prt' se torna explícito
 
-			nodes.push_back(SuffixTreeNode(nodes[to].start, nodes[to].start + prt.strSize()-1));//O novo nó em si, com sua aresta incidente
+			//'w' vai passar a ser o locus do label de 'to'
+			int w = nodes.size(); //O índice do novo nó (folha)
+			nodes.push_back(SuffixTreeNode(nodes.at(to).start + prt.strSize(), nodes.at(to).end));
+			nodes.at(w).sl = nodes.at(to).sl;
+			nodes.at(w).firstChild = nodes.at(to).firstChild;
 
-			nodes[to].start += prt.strSize(); //Atualiza a aresta do no que agora será filho de w
-			nodes[w].setChild(text[nodes[to].start], to);//Pendura 'to' em w
-			nodes[prt.v].setChild(text[nodes[w].start], w);//Pendura w em v, substituindo 'to'
-			
-			return w;	
+			nodes.at(to).end = nodes.at(w).start - 1; //nodes.at(to).start + prt.strSize() - 1; //A aresta de 'to' vai passar a ser um prefixo do que era
+			nodes.at(to).firstChild = w;
+			nodes.at(to).sl = -1;
+
+			return to;	
 		}
 	} else { //Não é implícito.
-		*isTerm = nodes[prt.v].hasChild(ch);
+		*isTerm = (nodes.at(prt.v).getChild(ch, text, nodes) != -1);
 		return prt.v;
 	}
 }
 
 ImplicitPointer SuffixTree::followSuffixLink(ImplicitPointer prt){
-	int antes = prt.v;
 	if(prt.v != 0)
-		prt.v = nodes[prt.v].sl;
+		prt.v = nodes.at(prt.v).sl;
 	else
 		++prt.st;
 
@@ -105,8 +113,15 @@ ImplicitPointer SuffixTree::followSuffixLink(ImplicitPointer prt){
 
 void SuffixTree::canonise(ImplicitPointer& prt){
 	while(prt.isImplicit()) {
-		int from = prt.v, to = nodes[from].getChild(text[prt.st]);
-		int size = (nodes[to].end == -1? n-1 : nodes[to].end) - nodes[to].start + 1;
+		int from = prt.v, to = nodes.at(from).getChild(text[prt.st], text, nodes);
+		printf("> From %d To %dSize %lu\n", prt.v, to, nodes.size());
+		if(to == -1) {
+			printf("Ideal %c\n", text[prt.st]);
+			printf("O que tem pra hj:\n");
+			for(int nt = nodes[from].firstChild; nt != -1; nt = nodes[nt].sibling)
+				printf("|%c|\n", text[nodes[nt].start]);
+		}
+		int size = (nodes.at(to).end == -1? n-1 : nodes.at(to).end) - nodes.at(to).start + 1;
 		if(size <= prt.strSize()){
 			prt.st += size;
 			prt.v = to;
@@ -121,29 +136,29 @@ void SuffixTree::findMatchings(const char* pat, size_t m, bool countOnly) {
 	int height = 0; //altura do vértice 'cur'
 	
 	while(i < m){//enquanto o padrão não foi todo consumido
-		if(!nodes[cur].hasChild(pat[i]))
+		cur = nodes.at(cur).getChild(pat[i], text, nodes);
+		if(cur == -1) //não dá para estender o padrão
 			break;
-		cur = nodes[cur].getChild(pat[i]);
-		height += nodes[cur].end - nodes[cur].start + 1;
+		height += nodes.at(cur).end - nodes.at(cur).start + 1;
 
 		//Tenta consumir os caracteres da aresta
-		int j = nodes[cur].start;
-		while(i < m && j <= nodes[cur].end && pat[i] == text[j]) 
+		int j = nodes.at(cur).start;
+		while(i < m && j <= nodes.at(cur).end && pat[i] == text[j]) 
 			++i, ++j;
 
 		//Houve um mismatch
-		if(i < m && j <= nodes[cur].end) 
+		if(i < m && j <= nodes.at(cur).end) 
 			break;
 	}
 	int occs = 0;
 	if(i == m)
-		occs = nodes[cur].leaves;
+		occs = nodes.at(cur).leaves;
 	printf("%d ocorrências encontradas\n", occs);
 
 	//imprime as ocorrências
 	if(!countOnly && i == m) {
 		map<pair<int,int>, set<int> > linesAndPositions; //Para cada linha (stPos, endPos) guardamos o início de cada casamento
-		getAllLines(pat, m, nodes[cur], height, linesAndPositions); //preenche o mapa com todas as linhas. Para isso é preciso achar todas as folhas abaixo de 'cur'
+		getAllLines(pat, m, nodes.at(cur), height, linesAndPositions); //preenche o mapa com todas as linhas. Para isso é preciso achar todas as folhas abaixo de 'cur'
 
 		int cont = 0;
 		for(map<pair<int,int>, set<int> >::iterator it = linesAndPositions.begin(); it  != linesAndPositions.end(); ++it){
@@ -183,8 +198,8 @@ void SuffixTree::getAllLines(const char* pat, size_t m, SuffixTreeNode& node, in
 	if(node.isLeaf()) //É folha
 		getLine(n - nodeHeight, linesAndPositions);	
 	else {
-		for(map<char,int>::iterator it = (node.children)->begin(); it != (node.children)->end(); ++it){
-			SuffixTreeNode& next = nodes[it->second];
+		for(int nt = node.firstChild; nt != -1; nt = nodes.at(nt).sibling){
+			SuffixTreeNode& next = nodes.at(nt);
 			int edgeSize = next.end - next.start + 1;
 			getAllLines(pat, m, next, nodeHeight + edgeSize, linesAndPositions); 
 		}
@@ -212,8 +227,9 @@ void SuffixTree::getLine(int matchStart, map<pair<int,int>, set<int> > &linesAnd
 void SuffixTree::printTree(int step) {
 	if(!dotFile)
 		return;
+	static int cnt = 0;
 
-	fprintf(dotFile, "digraph Tree%d{\n", step);
+	fprintf(dotFile, "digraph Tree%d_%d{\n", step, cnt++);
 	
 	for(int i = 0; i < nodes.size(); ++i)
 		fprintf(dotFile, "%d [label=\"%d\"]\n", i, i);
@@ -223,22 +239,22 @@ void SuffixTree::printTree(int step) {
 }
 
 void SuffixTree::_printTreeRec(int cur, int step){
-	SuffixTreeNode& node = nodes[cur];
+	SuffixTreeNode& node = nodes.at(cur);
 
 	if(node.sl != -1)
 		fprintf(dotFile, "%d -> %d [style=dotted,color=red]\n", cur, node.sl);
 
-	for(map<char,int>::iterator it = node.children->begin(); it != node.children->end(); ++it) {
-		SuffixTreeNode& next = nodes[it->second];
+	for(int nt = node.firstChild; nt != -1; nt = nodes.at(nt).sibling){
+		SuffixTreeNode& next = nodes.at(nt);
 		int labelSize = (next.end == -1 ? step : next.end) - next.start + 1;
 		char buffer[10000];
 		sprintf(buffer, "%.*s", labelSize, text + next.start);
 		if(strlen(buffer) != labelSize){
-			 throw false;
 		}
-		fprintf(dotFile, "%d -> %d [label=\"%.*s\"]\n", cur, it->second, labelSize, text + next.start);
+		fprintf(dotFile, "%d -> %d\n", cur, nt);
+		//fprintf(dotFile, "%d -> %d [label=\"%.*s\"]\n", cur, nt, labelSize, text + next.start);
 
-		_printTreeRec(it->second, step);
+		_printTreeRec(nt, step);
 	}
 
 }

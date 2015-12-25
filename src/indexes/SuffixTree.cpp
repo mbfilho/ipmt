@@ -16,7 +16,7 @@ void SuffixTree::build(const char* text, size_t n) {
 		int wprime = -1;
 		int w;
 		bool isTerm;
-		printf("Ok# ? %d\n", current.strSize() == 0 || nodes[current.v].getChild(text[current.st], text, nodes) != -1);
+		
 		for(w = split(current, text[i], &isTerm); !isTerm; w = split(current, text[i], &isTerm)) {			
 			//Cria uma folha representando o sufixo [i..] e 'pendura' em w 			
 			nodes.push_back(SuffixTreeNode(i, -1));
@@ -35,7 +35,6 @@ void SuffixTree::build(const char* text, size_t n) {
 			}
 
 			current = followSuffixLink(current);
-			printf("Ok* ? %d\n", current.strSize() == 0 || nodes[current.v].getChild(text[current.st], text, nodes) != -1);
 			canonise(current);
 		}
 
@@ -75,24 +74,34 @@ void SuffixTree::fixTree(SuffixTreeNode& node){
 
 int SuffixTree::split(ImplicitPointer prt, char ch, bool* isTerm){
 	if(prt.isImplicit()) {
-		int to = nodes.at(prt.v).getChild(text[prt.st], text, nodes);
-		*isTerm = text[nodes.at(to).start + prt.strSize()] == ch;
+		int toIdx = nodes.at(prt.v).getChild(text[prt.st], text, nodes);
+		*isTerm = text[nodes.at(toIdx).start + prt.strSize()] == ch;
 
 		if(*isTerm) 
 			return prt.v;
 		else {//Aqui 'prt' se torna explícito
 
-			//'w' vai passar a ser o locus do label de 'to'
-			int w = nodes.size(); //O índice do novo nó (folha)
-			nodes.push_back(SuffixTreeNode(nodes.at(to).start + prt.strSize(), nodes.at(to).end));
-			nodes.at(w).sl = nodes.at(to).sl;
-			nodes.at(w).firstChild = nodes.at(to).firstChild;
+			int w = nodes.size(); //O novo locus de 'prt'
+			nodes.push_back(SuffixTreeNode(nodes.at(toIdx).start, nodes.at(toIdx).start + prt.strSize() - 1)); //a aresta (prt.v, w) é um prefixo de (prt.v, to)
 
-			nodes.at(to).end = nodes.at(w).start - 1; //nodes.at(to).start + prt.strSize() - 1; //A aresta de 'to' vai passar a ser um prefixo do que era
-			nodes.at(to).firstChild = w;
-			nodes.at(to).sl = -1;
+			nodes.at(toIdx).start += prt.strSize(); //a futura aresta (w, to) é um sufixo da antiga aresta (prt.v, w)
+			nodes.at(w).firstChild = toIdx; //pendura 'to' em 'w'
 
-			return to;	
+			//É preciso substituir 'to' por 'w' na lista de adjacência de 'prt.v'
+			nodes.at(w).sibling = nodes.at(toIdx).sibling;
+			if(nodes.at(prt.v).firstChild == toIdx) 
+				nodes.at(prt.v).firstChild = w;
+			else {
+				int prev = -1, cur = nodes.at(prt.v).firstChild;
+				while(cur != toIdx) {
+					prev = cur;
+					cur = nodes.at(cur).sibling;
+				}
+				nodes.at(prev).sibling = w;
+			}
+			nodes.at(toIdx).sibling = -1;
+			
+			return w;	
 		}
 	} else { //Não é implícito.
 		*isTerm = (nodes.at(prt.v).getChild(ch, text, nodes) != -1);
@@ -114,13 +123,6 @@ ImplicitPointer SuffixTree::followSuffixLink(ImplicitPointer prt){
 void SuffixTree::canonise(ImplicitPointer& prt){
 	while(prt.isImplicit()) {
 		int from = prt.v, to = nodes.at(from).getChild(text[prt.st], text, nodes);
-		printf("> From %d To %dSize %lu\n", prt.v, to, nodes.size());
-		if(to == -1) {
-			printf("Ideal %c\n", text[prt.st]);
-			printf("O que tem pra hj:\n");
-			for(int nt = nodes[from].firstChild; nt != -1; nt = nodes[nt].sibling)
-				printf("|%c|\n", text[nodes[nt].start]);
-		}
 		int size = (nodes.at(to).end == -1? n-1 : nodes.at(to).end) - nodes.at(to).start + 1;
 		if(size <= prt.strSize()){
 			prt.st += size;
@@ -251,8 +253,8 @@ void SuffixTree::_printTreeRec(int cur, int step){
 		sprintf(buffer, "%.*s", labelSize, text + next.start);
 		if(strlen(buffer) != labelSize){
 		}
-		fprintf(dotFile, "%d -> %d\n", cur, nt);
-		//fprintf(dotFile, "%d -> %d [label=\"%.*s\"]\n", cur, nt, labelSize, text + next.start);
+//		fprintf(dotFile, "%d -> %d\n", cur, nt);
+		fprintf(dotFile, "%d -> %d [label=\"%.*s\"]\n", cur, nt, labelSize, text + next.start);
 
 		_printTreeRec(nt, step);
 	}

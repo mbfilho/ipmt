@@ -1,18 +1,16 @@
 #ifndef SUFFIX_ARRAY
 #define SUFFIX_ARRAY
-#include <cstdio>
-#include <algorithm>
-#include "Index.h"
 
-using std::pair;
-using std::make_pair;
+#include "Index.h"
+#include "Global.h"
 
 class SuffixArray : public Index {
 public:
 	SuffixArray();
 	~SuffixArray();
 	void build(const char* text, size_t n);
-	
+	void findMatchings(const char* pat, size_t m, bool countOnly); 
+
 	//Existem apenas para rodar os testes
 	int* getArray();
 	int* getLlcp();

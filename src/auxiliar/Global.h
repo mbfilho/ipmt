@@ -5,7 +5,6 @@
 #include <cassert>
 
 #include <vector>
-#include <cstdio>
 #include <set>
 #include <map>
 #include <algorithm>
@@ -15,5 +14,4 @@ using std::map;
 using std::make_pair;
 using std::set;
 using std::vector;
-
 #endif

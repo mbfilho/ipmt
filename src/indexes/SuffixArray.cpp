@@ -25,8 +25,8 @@ SuffixArray::~SuffixArray(){
 void SuffixArray::build(const char* text, size_t size) {
 	this->n = size;
 	this->text = text;	
-	piecesRank = new int[MAX(256, size)];//importante que seja deste tamanho
-	suffixArray = new int[size];
+	piecesRank = new int[MAX(256, size)];
+	suffixArray = new int[MAX(256, size)];
 	
 	count = new int[MAX(256, size)];
 	tmp = new int[MAX(256, size)];
@@ -38,7 +38,6 @@ void SuffixArray::build(const char* text, size_t size) {
 	//Lembrando que os valores em piecesRank são 1-based	
 	int lastLcp = 0;
 	for(int i = 0; i < n; ++i){
-		//printf("I %d Rank %d\n", i, piecesRank[i]-1);
 		if(piecesRank[i] > 1){
 			int j = suffixArray[piecesRank[i]-2];//predecessor do sufixo i
 			while(i+lastLcp < n && j + lastLcp < n && text[i+lastLcp] == text[j+lastLcp])
@@ -48,15 +47,7 @@ void SuffixArray::build(const char* text, size_t size) {
 				--lastLcp;
 		}
 	}
-//	printf("SuffixArray:\n");
-//	for(int i = 0; i < n; ++i)
-//		printf("%2d - |%s|\n", suffixArray[i], text + suffixArray[i]);
-
-//	printf("Lcp (conse.): oo");
-//	for(int i = 1; i < n; ++i)
-//		printf(" %d", lcp[i]);
-//	printf("\n");
-
+	
 	lLcp = piecesRank;
 	piecesRank = NULL;
 	rLcp = tmp;
@@ -156,4 +147,48 @@ void SuffixArray::sortPieces() {
 		suffixArray = aux;
 	}
 }
+
+void SuffixArray::findMatchings(const char* pat, size_t m, bool countOnly) { 
+
+}
+
+/*
+* Retorna a primeira posição do array de sufixo que possui um sufixo lexicograficamente >=_m 'pat'
+*/
+int SuffixArray::findSuccessor(const char* pat, size_t m) {
+	int L = getLcp(text + suffixArray[0], pat), R = getLcp(pat, text + suffixArray[n-1]);
+
+	if(L == m || pat[L] <= text[suffixArray[0] + L]) //verifica se o sufixo em sa[0] >=_m pat
+		return 0;
+	if(R < m && pat[R] > text[suffixArray[n-1] + R]) //o caso em que pat não tem sucessor
+		return n;
+	
+	int l = 0, r = n - 1;
+	//(l,r]
+
+	while(r-l > 1) {
+		int h = (l+r)>>1, H;
+
+		if(L >= R) {
+			if(lLcp[h] < L) H = lLcp[h];
+			else H = L + getLcp(pat + L, text + suffixArray[h] + L);	
+		} else {
+			if(rLcp[h] < R) H = rLcp[h];
+			else H = R + getLcp(pat + R, text + suffixArray[h] + R);
+		}
+
+		if(H < m && pat[H] > text[suffixArray[h]+H])//Testa se T[h..] < pat. Nesse caso h tem que cair fora da busca
+			l = h, L = H;
+		else
+			r = h, R = H;
+	}
+
+	return r;
+}
+
+
+
+
+
+
 

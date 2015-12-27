@@ -21,15 +21,16 @@ int main(int argc, char* argv[]){
 //
 //		delete array;
 //	}
-
+	Index* index;
+	index = new SuffixArray();
+//	index = new SuffixTree("tree.dot");
 	if(FILE* in = fopen(argv[1], "r")){
 		size_t read = fread(buffer, sizeof(char), SIZE-2, in);
 		if(buffer[read-1] == '\n') --read;
-		buffer[read] = '$', buffer[read+1] = 0;
-		SuffixTree tree("tree.dot");
-//		printf("Buinding tree for the text |%s|\n", buffer);
-		if(read+1 != strlen(buffer)) throw "xau";
-		tree.build(buffer, read+1);
+	//	buffer[read++] = '$';
+		buffer[read] = 0;
+		
+		index->build(buffer, read);
 		
 		if(FILE* que = fopen(argv[2], "r")) {
 			
@@ -37,8 +38,9 @@ int main(int argc, char* argv[]){
 				int m = strlen(line);
 				if(line[m-1] == '\n') line[--m] = 0;
 				printf("MatchingLines for Pattern %s\n", line);
-				tree.findMatchings(line, size_t(m), false);
+				index->findMatchings(line, size_t(m), false);
 			}
 		}else printf("File |%s| not found\n", argv[2]);
 	}else printf("File |%s| not found\n", argv[1]);
 }
+

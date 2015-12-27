@@ -21,15 +21,33 @@ SuffixArray::~SuffixArray(){
 	if(lLcp) delete [] lLcp;
 	if(rLcp) delete [] rLcp;
 }
+struct O{
+	const char* text;
+	O(const char* text):text(text){}
+
+	bool operator()(const int a, const int b){
+		const char* A = text + a, *B = text + b;
+		while(*A && *B && *A == *B) ++A, ++B;
+		if(*A == 0) return 1;
+		if(*B == 0) return 0;
+//		printf("NO Sort %d %d %d\n", a, b, *A < *B);
+		return *A < *B;
+	}
+};
 
 void SuffixArray::build(const char* text, size_t size) {
 	this->n = size;
 	this->text = text;	
-	piecesRank = new int[MAX(256, size)];
-	suffixArray = new int[MAX(256, size)];
+
+	sa = new int[size];
+	for(int i = 0; i < n; ++i)sa[i] = i, printf("SA[%d] = %d\n", i, sa[i]) ;
+	std::sort(sa, sa + n, O(text));
+
+	piecesRank = new int[MAX(256, size)+1];
+	suffixArray = new int[MAX(256, size)+1];
 	
-	count = new int[MAX(256, size)];
-	tmp = new int[MAX(256, size)];
+	count = new int[MAX(256, size)+1];
+	tmp = new int[MAX(256, size)+1];
 	
 	buildSuffixArray();
 	lcp = count; //para evitar fazer nova alocação
@@ -56,6 +74,13 @@ void SuffixArray::build(const char* text, size_t size) {
 	for(int i = 0; i < n; ++i)
 		lLcp[i] = rLcp[i] = -1;
 	buildLcpArrays(0, n-1);
+
+	for(int i = 0; i < n; ++i)
+		printf("S[%d] = %d\n", i, int(text[i]));	
+	for(int i = 0; i < n; ++i){
+		printf("[%d] %d x  %d\n", i, sa[i], suffixArray[i]);
+		assert(sa[i] == suffixArray[i]);
+	}
 }
 
 int* SuffixArray::getArray() {
@@ -89,14 +114,18 @@ int SuffixArray::buildLcpArrays(int l, int r) {
 
 void SuffixArray::buildSuffixArray() {
 	//primeira 'ordenação'
-	for(int i = 0; i < n; ++i)
-		piecesRank[i] = text[i];
+	for(int i = 0; i < 256; ++i) count[i] = 0;
+	for(int i = 0; i < n; ++i) ++count[128+text[i]];
+	for(int i = 1; i < 256; ++i) count[i] = count[i-1] + (count[i] != 0);
+	for(int i = 0; i < n; ++i){
+		piecesRank[i] = count[128+text[i]];
+	}
 
 	k = 0;
 	while((1<<k) <= n){
 		for(int i = 0; i < n; ++i)
 			suffixArray[i] = i;
-		
+
 		sortPieces();
 		int rank = 1;
 		int i = 0;
@@ -125,17 +154,29 @@ void SuffixArray::buildSuffixArray() {
 	}
 }
 
+struct P{
+	int* piecesRank;
+	int k, n;
+	P(int* p, int k, int n):piecesRank(p), k(k), n(n){}
+	bool operator()(const int a, const int b){
+		int pi[2], pj[2];
+		getPair(a, pi);
+		getPair(b, pj);
+		return pi[0] < pj[0] || (pi[0] == pj[0] && pi[1] < pj[1]);
+	}
+};
+
 void SuffixArray::sortPieces() {
 	int pi[2];
 	for(int d = 1; d >= 0; --d){
-		for(int i =0 ; i < MAX(256, n); ++i)
+		for(int i =0 ; i <= MAX(256, n); ++i)
 			count[i]=0; 
 
 		for(int i = 0; i < n; ++i){
 			getPair(suffixArray[i], pi);
 			++count[pi[d]];
 		}
-		for(int i = 1; i < MAX(256, n); ++i)
+		for(int i = 1; i <= MAX(256, n); ++i)
 			count[i] += count[i-1];
 		
 		for(int i = n - 1; i >= 0; --i){
@@ -149,7 +190,37 @@ void SuffixArray::sortPieces() {
 }
 
 void SuffixArray::findMatchings(const char* pat, size_t m, bool countOnly) { 
+	int suc = findSuccessor(pat, m), pred = findPredecessor(pat, m);
+	printf("%d ocorrências encontradas\n", suc <= pred ? pred - suc + 1 : 0);
+	printf("(%d,%d)\n", suc, pred);
+	for(int i = n-1; i >= 0; --i){
+		int lcp = getLcp(pat, text + suffixArray[i]);
+		
+		if(lcp < m && (suffixArray[i]+lcp >= n || pat[lcp] > text[suffixArray[i]+lcp])) {//se o pat > 
+			printf(">> %d |%.30s|\n", i, text+suffixArray[i+1]);
+			assert(i+1 == suc);
+			break;
+		}
+	}
+	for(int i = 0; i < n; ++i){
+		int lcp = getLcp(pat, text + suffixArray[i]);
 
+		if((lcp == m && suffixArray[i] + lcp >= n )|| (lcp < m && suffixArray[i] + lcp < n && pat[lcp] < text[suffixArray[i] + lcp]))//se pat <
+		{
+			printf("Predecessor >> %d |%.30s|\n", i-1, text+suffixArray[i-1]);
+			assert(i-1 == pred);
+			break;
+		}
+	}
+}
+
+/*
+* Retorna o lcp de duas cadeias terminadas com \0
+*/
+int SuffixArray::getLcp(const char* a, const char* b){
+	int lcp = 0;
+	while(*a && *b && *a == *b) ++lcp, ++a, ++b;
+	return lcp;
 }
 
 /*
@@ -158,9 +229,9 @@ void SuffixArray::findMatchings(const char* pat, size_t m, bool countOnly) {
 int SuffixArray::findSuccessor(const char* pat, size_t m) {
 	int L = getLcp(text + suffixArray[0], pat), R = getLcp(pat, text + suffixArray[n-1]);
 
-	if(L == m || pat[L] <= text[suffixArray[0] + L]) //verifica se o sufixo em sa[0] >=_m pat
+	if(L == m || (suffixArray[0] + L < n && pat[L] <= text[suffixArray[0] + L])) //verifica se o sufixo em sa[0] >=_m pat
 		return 0;
-	if(R < m && pat[R] > text[suffixArray[n-1] + R]) //o caso em que pat não tem sucessor
+	if(R < m && (suffixArray[n-1] + R >= n || pat[R] > text[suffixArray[n-1] + R])) //o caso em que pat não tem sucessor: pat é maior que todos os sufixos
 		return n;
 	
 	int l = 0, r = n - 1;
@@ -177,7 +248,7 @@ int SuffixArray::findSuccessor(const char* pat, size_t m) {
 			else H = R + getLcp(pat + R, text + suffixArray[h] + R);
 		}
 
-		if(H < m && pat[H] > text[suffixArray[h]+H])//Testa se T[h..] < pat. Nesse caso h tem que cair fora da busca
+		if(H < m && (suffixArray[h]+H >= n || pat[H] > text[suffixArray[h]+H]))//Testa se T[h..] < pat. Nesse caso h tem que cair fora da busca
 			l = h, L = H;
 		else
 			r = h, R = H;

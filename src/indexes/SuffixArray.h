@@ -17,6 +17,10 @@ public:
 	int* getRlcp(); 
 private:
 	
+	int getLcp(const char* a, const char* b);
+	int findSuccessor(const char* pat, size_t m);
+	int findPredecessor(const char* pat, size_t m);
+	
 	void sortPieces();
 	pair<int,int> getPair(int pos);
 	int buildLcpArrays(int l, int r);
@@ -30,6 +34,9 @@ private:
 	int *lLcp, *rLcp;
 	size_t n;
 	const char* text;
+
+
+	int *sa;
 };
 
 #endif

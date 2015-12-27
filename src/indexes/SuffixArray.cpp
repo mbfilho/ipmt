@@ -21,27 +21,10 @@ SuffixArray::~SuffixArray(){
 	if(lLcp) delete [] lLcp;
 	if(rLcp) delete [] rLcp;
 }
-struct O{
-	const char* text;
-	O(const char* text):text(text){}
-
-	bool operator()(const int a, const int b){
-		const char* A = text + a, *B = text + b;
-		while(*A && *B && *A == *B) ++A, ++B;
-		if(*A == 0) return 1;
-		if(*B == 0) return 0;
-//		printf("NO Sort %d %d %d\n", a, b, *A < *B);
-		return *A < *B;
-	}
-};
 
 void SuffixArray::build(const char* text, size_t size) {
 	this->n = size;
 	this->text = text;	
-
-	sa = new int[size];
-	for(int i = 0; i < n; ++i)sa[i] = i, printf("SA[%d] = %d\n", i, sa[i]) ;
-	std::sort(sa, sa + n, O(text));
 
 	piecesRank = new int[MAX(256, size)+1];
 	suffixArray = new int[MAX(256, size)+1];
@@ -70,17 +53,8 @@ void SuffixArray::build(const char* text, size_t size) {
 	piecesRank = NULL;
 	rLcp = tmp;
 	tmp = NULL;
-	//Só coloquei isso para testar. Pode ser removido quando tiver certeza que a implementação está correta.
-	for(int i = 0; i < n; ++i)
-		lLcp[i] = rLcp[i] = -1;
+	
 	buildLcpArrays(0, n-1);
-
-	for(int i = 0; i < n; ++i)
-		printf("S[%d] = %d\n", i, int(text[i]));	
-	for(int i = 0; i < n; ++i){
-		printf("[%d] %d x  %d\n", i, sa[i], suffixArray[i]);
-		assert(sa[i] == suffixArray[i]);
-	}
 }
 
 int* SuffixArray::getArray() {
@@ -154,18 +128,6 @@ void SuffixArray::buildSuffixArray() {
 	}
 }
 
-struct P{
-	int* piecesRank;
-	int k, n;
-	P(int* p, int k, int n):piecesRank(p), k(k), n(n){}
-	bool operator()(const int a, const int b){
-		int pi[2], pj[2];
-		getPair(a, pi);
-		getPair(b, pj);
-		return pi[0] < pj[0] || (pi[0] == pj[0] && pi[1] < pj[1]);
-	}
-};
-
 void SuffixArray::sortPieces() {
 	int pi[2];
 	for(int d = 1; d >= 0; --d){
@@ -192,25 +154,12 @@ void SuffixArray::sortPieces() {
 void SuffixArray::findMatchings(const char* pat, size_t m, bool countOnly) { 
 	int suc = findSuccessor(pat, m), pred = findPredecessor(pat, m);
 	printf("%d ocorrências encontradas\n", suc <= pred ? pred - suc + 1 : 0);
-	printf("(%d,%d)\n", suc, pred);
-	for(int i = n-1; i >= 0; --i){
-		int lcp = getLcp(pat, text + suffixArray[i]);
-		
-		if(lcp < m && (suffixArray[i]+lcp >= n || pat[lcp] > text[suffixArray[i]+lcp])) {//se o pat > 
-			printf(">> %d |%.30s|\n", i, text+suffixArray[i+1]);
-			assert(i+1 == suc);
-			break;
-		}
-	}
-	for(int i = 0; i < n; ++i){
-		int lcp = getLcp(pat, text + suffixArray[i]);
 
-		if((lcp == m && suffixArray[i] + lcp >= n )|| (lcp < m && suffixArray[i] + lcp < n && pat[lcp] < text[suffixArray[i] + lcp]))//se pat <
-		{
-			printf("Predecessor >> %d |%.30s|\n", i-1, text+suffixArray[i-1]);
-			assert(i-1 == pred);
-			break;
-		}
+	if(!countOnly) {
+		Printer printer(text, n, pat, m);
+		for(int i = suc; i <= pred; ++i)
+			printer.addMatching(suffixArray[i]);
+		printer.print();
 	}
 }
 

@@ -3,6 +3,7 @@
 
 #include "Index.h"
 #include "Global.h"
+#include "Printer.h"
 
 class SuffixArray : public Index {
 public:
@@ -34,9 +35,6 @@ private:
 	int *lLcp, *rLcp;
 	size_t n;
 	const char* text;
-
-
-	int *sa;
 };
 
 #endif

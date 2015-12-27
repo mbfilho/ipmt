@@ -165,71 +165,26 @@ void SuffixTree::findMatchings(const char* pat, size_t m, bool countOnly) {
 
 	//imprime as ocorrências
 	if(!countOnly && i == m) {
-		map<pair<int,int>, set<int> > linesAndPositions; //Para cada linha (stPos, endPos) guardamos o início de cada casamento
-		getAllLines(pat, m, nodes.at(cur), height, linesAndPositions); //preenche o mapa com todas as linhas. Para isso é preciso achar todas as folhas abaixo de 'cur'
+		Printer printer(text, n, pat, m);
+		getMatchings(pat, m, nodes.at(cur), height, printer); //Registra todas as ocorrências do padrão. Para isso é preciso achar todas as folhas abaixo de 'cur'
+		printer.print();//imprime as ocorrências
 
-		int cont = 0;
-		for(map<pair<int,int>, set<int> >::iterator it = linesAndPositions.begin(); it  != linesAndPositions.end(); ++it){
-			int pos = (it->first).first, lastPos = (it->first).second; //os limites da linha atual
-			
-			for(set<int>::iterator matching = (it->second).begin(); matching != (it->second).end(); ++matching){
-				++cont;
-				if(pos < *matching) { 
-					printf("%.*s", *matching - pos, text + pos);
-					printf("\033[31m");
-					printf("%s", pat);
-					printf("\033[0m");	
-					pos = *matching + m;
-				} else if(*matching + m > pos){
-					printf("\033[31m");
-					printf("%.*s", int(*matching + m - pos), pat + (pos-*matching));
-					printf("\033[0m");	
-					pos = *matching + m;
-				}
-			}
-
-			if(pos <= lastPos)
-				printf("%.*s", lastPos - pos + 1, text + pos);
-
-			printf("\n");
-		}
-		assert(occs == cont && "Numero de ocorrencias diferem");
 	}
 }
 
 /*
-* Recupera todas as linhas que contém o padrão 'pat'. Para isso, 
-* faz-se uma busca em profundidade para se encontrar todas as folhas
-* que estão na subárvore de 'node'. As linhas são salvas no mapa.
+* Registra todas as ocorrências do padrão no texto
 */
-void SuffixTree::getAllLines(const char* pat, size_t m, SuffixTreeNode& node, int nodeHeight, map<pair<int,int>, set<int> > &linesAndPositions ) {
+void SuffixTree::getMatchings(const char* pat, size_t m, SuffixTreeNode& node, int nodeHeight, Printer& printer) {
 	if(node.isLeaf()) //É folha
-		getLine(n - nodeHeight, linesAndPositions);	
+		printer.addMatching(n-nodeHeight);
 	else {
 		for(int nt = node.firstChild; nt != -1; nt = nodes.at(nt).sibling){
 			SuffixTreeNode& next = nodes.at(nt);
 			int edgeSize = next.end - next.start + 1;
-			getAllLines(pat, m, next, nodeHeight + edgeSize, linesAndPositions); 
+			getMatchings(pat, m, next, nodeHeight + edgeSize, printer); 
 		}
 	}
-}
-
-/*
-* Recupera a linha que contém o casamento iniciado em 'matchStart'. 
-* Preenche o mapa {linha -> posição do matching}.
-*/
-void SuffixTree::getLine(int matchStart, map<pair<int,int>, set<int> > &linesAndPositions ) {
-	int lineSt = matchStart, lineEnd = matchStart;
-
-	while(lineSt > 0 && text[lineSt] != '\n') --lineSt;
-	if(text[lineSt] == '\n') ++lineSt;
-	
-	while(lineEnd < n-1 && text[lineEnd] != '\n') ++lineEnd;
-	if(text[lineEnd] == '\n') --lineEnd;
-
-	pair<int,int> line(lineSt,lineEnd);
-
-	linesAndPositions[line].insert(matchStart);
 }
 
 void SuffixTree::printTree(int step) {

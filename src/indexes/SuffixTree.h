@@ -4,6 +4,7 @@
 #include "Global.h"
 #include "SuffixTreeNode.h"
 #include "Index.h"
+#include "Printer.h"
 
 struct ImplicitPointer {
 	int v, st, end;
@@ -44,8 +45,7 @@ private:
 	void printTree(int step);
 	void _printTreeRec(int cur, int step); 
 
-	void getAllLines(const char* pat, size_t m, SuffixTreeNode& node, int nodeHeight, map<pair<int,int>, set<int> >& linesAndPositions);
-	void getLine(int matchStart, map<pair<int,int>, set<int> >& linesAndPositions);
+	void getMatchings(const char* pat, size_t m, SuffixTreeNode& node, int nodeHeight, Printer& printer);
 };
 
 #endif

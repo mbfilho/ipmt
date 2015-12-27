@@ -2,14 +2,17 @@ aux = auxiliar
 idx = indexes
 
 all: $(idx)/Main.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o
-	g++ -O3 -g -I $(aux) $(idx)/Main.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o
+	g++ -O3 -g -I $(aux) $(idx)/Main.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o Printer.o
 
 SuffixArray.o: $(idx)/SuffixArray.cpp $(idx)/SuffixArray.h $(idx)/Index.h
-	g++ -O3 -g -c $<
+	g++ -O3 -g -I $(aux) -c $<
 SuffixArray2.o: $(idx)/SuffixArray2.cpp $(idx)/SuffixArray2.h $(idx)/Index.h
-	g++ -O3 -g -c $<
+	g++ -O3 -g -I $(aux) -c $<
 
 SuffixTreeNode.o: $(aux)/SuffixTreeNode.cpp $(aux)/SuffixTreeNode.h 
 	g++ -O3  -g -c $< 
 SuffixTree.o: $(idx)/SuffixTree.cpp $(idx)/SuffixTree.h $(aux)/SuffixTreeNode.h
 	g++ -O3 -I $(aux) -g -c $< 
+
+Printer.o: $(aux)/Printer.cpp $(aux)/Printer.h $(aux)/Global.h
+	g++ -O3 -g -I $(aux) $(aux)/Printer.cpp -c $<

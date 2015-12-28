@@ -1,5 +1,6 @@
 aux = auxiliar
 idx = indexes
+comp = compression
 
 all: $(idx)/Main.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o
 	g++ -O3 -g -I $(aux) $(idx)/Main.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o Printer.o
@@ -16,3 +17,10 @@ SuffixTree.o: $(idx)/SuffixTree.cpp $(idx)/SuffixTree.h $(aux)/SuffixTreeNode.h
 
 Printer.o: $(aux)/Printer.cpp $(aux)/Printer.h $(aux)/Global.h
 	g++ -O3 -g -I $(aux) $(aux)/Printer.cpp -c $<
+
+DummyCompressor.o: $(comp)/DummyCompressor.cpp $(comp)/DummyCompressor.h $(aux)/Global.h
+	g++ -O3 -g -I $(aux) $(comp)/DummyCompressor.cpp -c $<
+
+DummyDecompressor.o: $(comp)/DummyDecompressor.cpp $(comp)/DummyDecompressor.h $(aux)/Global.h
+	g++ -O3 -g -I $(aux) $(comp)/DummyDecompressor.cpp -c $<
+

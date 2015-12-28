@@ -8,9 +8,45 @@ SuffixTree::SuffixTree(const char* dotFileName) {
 }
 
 void SuffixTree::compress(Compressor* compressor) {
+	//Escreve o tamanho do texto e o texto
+	compressor->writeInt(n);
+	compressor->writeText(text, n);
+
+	//Escreve a quantidade de nós
+	compressor->writeInt(nodes.size());
+
+	//Escreve os nós em si
+	for(int i = 0; i < nodes.size(); ++i){
+		SuffixTreeNode& cur = nodes[i];
+		int fieldsToSave[] = {
+			cur.start,
+			cur.end,
+			cur.leaves,
+			cur.firstChild,
+			cur.sibling
+		};
+		compressor->writeArrayOfInts(fieldsToSave, 5);
+	}
 }
 
 void SuffixTree::decompress(Decompressor* decompressor) {
+	n = decompressor->readInt();
+	char* tmp = new char[n];
+	for(int i = 0; i < n; ++i)
+		tmp[i] = decompressor->readByte();
+	tmp[n-1] = 0;
+
+	//Atenção para a leitura dos nós!
+	//A ordem tem que ser a mesma da escrita!
+	nodes.resize(decompressor->readInt());
+	for(int i = 0; i < nodes.size(); ++i){
+		SuffixTreeNode& cur = nodes[i];
+		cur.start = decompressor->readInt();
+		cur.end = decompressor->readInt();
+		cur.leaves = decompressor->readInt();
+		cur.firstChild = decompressor->readInt();
+		cur.sibling = decompressor->readInt();
+	}
 }
  
 void SuffixTree::build(const char* text, size_t n) {

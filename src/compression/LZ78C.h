@@ -19,7 +19,6 @@ public:
 private:
 	vector<TrieNode> trie;
 	int currentNode;
-	int dicionarySize;
 
 	ull buffer[BUFFER_MAX_SIZE+1];
 	int lastTokenSize; //a quantidade de bits utilizados no último elemento de 'buffer'
@@ -27,7 +26,6 @@ private:
 
 	FILE* file;
 	
-	int getSizeInBits(int arg);
 	void encodeInt(int arg);
 	void insertIntoBuffer(ull token, int tokenSize);
 	void flush();

@@ -4,8 +4,6 @@
 LZ78C::LZ78C(const char* fileName) {
 	currentNode = 0;
 	trie.push_back(TrieNode());//Root
-	trie.back().idx = 0;
-	dicionarySize = 1;
 
 	bufferSize = 0;
 	lastTokenSize = 0;
@@ -38,12 +36,11 @@ void LZ78C::writeText(const char* text, int size) {
 void LZ78C::writeByte(int arg) {
 	int nextNode = trie[currentNode].getChild(arg, trie);
 	if(nextNode == -1) {
-		encodeInt(trie[currentNode].idx); //O indice do termo no dicionário
+		encodeInt(currentNode); //O indice do termo no dicionário
 		encodeInt(arg); //O índice do elemento 'mismatching'	
 	
 		//Insere o termo no dicionário	
 		trie.push_back(TrieNode());
-		trie.back().idx = dicionarySize++;
 		trie[currentNode].addChild(arg, trie.size()-1, trie.back());
 		
 		currentNode = 0;
@@ -51,18 +48,6 @@ void LZ78C::writeByte(int arg) {
 		currentNode = nextNode;
 }
 
-int LZ78C::getSizeInBits(int arg) {
-	ui u = ui(arg);
-	if(!u) return 1;
-
-	int size = 0;
-	while(u) {
-		++size;
-		u >>= 1;
-	}
-
-	return size;
-}
 
 /*
 * Estratégia:
@@ -79,8 +64,7 @@ void LZ78C::encodeInt(int arg) {
 	ull token = 0; //token eh o monte de bits gerados da codificação de 'arg'
 	
 	//representação unária de size
-	for(int i = 0; i < sizeOfSize; ++i)
-		token = (token << 1) | 1;
+	token = (1ULL<<sizeOfSize)-1;
 
 	//separador '0' + representação (binária) de size. 
 	token = token | (ull(size) << (sizeOfSize + 1));
@@ -93,13 +77,6 @@ void LZ78C::encodeInt(int arg) {
 	insertIntoBuffer(token, tokenSize);
 }
 
-void printBinaryFormat(ull a, int size) {
-	for(int i = 0; i < size; ++i){
-		printf("%llu", a & 1);
-		a >>= 1;
-	}
-	printf("\n");
-}
 
 void LZ78C::insertIntoBuffer(ull token, int tokenSize){
 	if(bufferSize) {//verifica se pode 'encher' o último elemento do buffer
@@ -109,7 +86,7 @@ void LZ78C::insertIntoBuffer(ull token, int tokenSize){
 		int filledbits = MIN(64 - lastTokenSize, tokenSize); //a quantidade de bits acrescentados ao último elemento
 		lastTokenSize += filledbits;
 		
-		//discarta os bits que foram colocados no último elemento
+		//descarta os bits que foram colocados no último elemento
 		token <<= filledbits;
 		tokenSize -= filledbits;
 	}
@@ -136,7 +113,7 @@ void LZ78C::flush() {
 
 void LZ78C::flushAndClose() {
 	if(currentNode != 0) {
-		encodeInt(trie[currentNode].idx);
+		encodeInt(currentNode);
 		encodeInt(256);//Um caracter imaginário fora do alfabeto
 	}
 	flush();

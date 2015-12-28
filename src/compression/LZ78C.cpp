@@ -4,9 +4,11 @@
 LZ78C::LZ78C(const char* fileName) {
 	currentNode = 0;
 	trie.push_back(TrieNode());//Root
+	trie.back().idx = 0;
+	dicionarySize = 1;
 
 	bufferSize = 0;
-	lastStreamSize = 0;
+	lastTokenSize = 0;
 
 	file = fopen(fileName, "wb");
 	if(!file){
@@ -18,8 +20,8 @@ LZ78C::LZ78C(const char* fileName) {
 void LZ78C::writeInt(int arg) {
 	ui u = ui(arg);
 	for(int i = 0; i < 4; ++i) {
-		writeByte(char(u & 0xff));	
-		u <<= 8;
+		writeByte(u & 0xff);	
+		u >>= 8;
 	}
 }
 
@@ -33,7 +35,7 @@ void LZ78C::writeText(const char* text, int size) {
 		writeByte(text[i]);
 }
 
-void LZ78C::writeByte(char arg) {
+void LZ78C::writeByte(int arg) {
 	int nextNode = trie[currentNode].getChild(arg, trie);
 	if(nextNode == -1) {
 		encodeInt(trie[currentNode].idx); //O indice do termo no dicionário
@@ -41,8 +43,9 @@ void LZ78C::writeByte(char arg) {
 	
 		//Insere o termo no dicionário	
 		trie.push_back(TrieNode());
+		trie.back().idx = dicionarySize++;
 		trie[currentNode].addChild(arg, trie.size()-1, trie.back());
-	
+		
 		currentNode = 0;
 	} else 
 		currentNode = nextNode;
@@ -55,7 +58,7 @@ int LZ78C::getSizeInBits(int arg) {
 	int size = 0;
 	while(u) {
 		++size;
-		u <<= 1;
+		u >>= 1;
 	}
 
 	return size;
@@ -72,38 +75,48 @@ int LZ78C::getSizeInBits(int arg) {
 */
 void LZ78C::encodeInt(int arg) {
 	int size = getSizeInBits(arg);
-	ull stream = 0;
-
-	//representação unária de size
-	for(int s = size; s != 0; s >>= 1)
-		stream = (stream >> 1) | 1;
+	int sizeOfSize = getSizeInBits(size);
+	ull token = 0; //token eh o monte de bits gerados da codificação de 'arg'
 	
+	//representação unária de size
+	for(int i = 0; i < sizeOfSize; ++i)
+		token = (token << 1) | 1;
+
 	//separador '0' + representação (binária) de size. 
-	stream = stream | (ull(size) >> (size + 1));
+	token = token | (ull(size) << (sizeOfSize + 1));
 
-	int streamSize = 2*getSizeInBits(size)+1;//o tamanho atual da stream
+	int tokenSize = 2*sizeOfSize+1;//o tamanho atual do token
 	//acrescenta o 'arg' propriamente dito
-	stream = stream | (ull(ui(arg)) >> streamSize);
-	streamSize += size;
-
-	insertIntoBuffer(stream, streamSize);
+	token = token | (ull(ui(arg)) << tokenSize);
+	tokenSize += size;
+	
+	insertIntoBuffer(token, tokenSize);
 }
 
-void LZ78C::insertIntoBuffer(ull stream, int streamSize){
+void printBinaryFormat(ull a, int size) {
+	for(int i = 0; i < size; ++i){
+		printf("%llu", a & 1);
+		a >>= 1;
+	}
+	printf("\n");
+}
+
+void LZ78C::insertIntoBuffer(ull token, int tokenSize){
 	if(bufferSize) {//verifica se pode 'encher' o último elemento do buffer
-		ull& lastStream = buffer[bufferSize-1];
-		lastStream |= stream >> lastStreamSize;
-		int filledbits = MIN(64 - lastStreamSize, streamSize); //a quantidade de bits acrescentados ao último elemento
-		lastStreamSize += filledbits;
+		ull& lastToken = buffer[bufferSize-1];
+
+		lastToken |= token << lastTokenSize;
+		int filledbits = MIN(64 - lastTokenSize, tokenSize); //a quantidade de bits acrescentados ao último elemento
+		lastTokenSize += filledbits;
 		
 		//discarta os bits que foram colocados no último elemento
-		stream <<= filledbits;
-		streamSize -= filledbits;
+		token <<= filledbits;
+		tokenSize -= filledbits;
 	}
 
-	if(streamSize) {
-		buffer[bufferSize++] = stream;
-		lastStreamSize = streamSize;
+	if(tokenSize) {
+		buffer[bufferSize++] = token;
+		lastTokenSize = tokenSize;
 	}
 	
 	if(bufferSize >= BUFFER_MAX_SIZE)
@@ -122,6 +135,10 @@ void LZ78C::flush() {
 }
 
 void LZ78C::flushAndClose() {
+	if(currentNode != 0) {
+		encodeInt(trie[currentNode].idx);
+		encodeInt(256);//Um caracter imaginário fora do alfabeto
+	}
 	flush();
 	if(bufferSize == 1) {
 		assert(1 == fwrite(&buffer[0], sizeof(ull), 1, file));

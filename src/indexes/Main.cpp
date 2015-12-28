@@ -39,10 +39,7 @@ int main(int argc, char* argv[]){
 			index->compress(compressor);
 		}else printf("O arquivo de texto \'%s\' não pôde ser aberto para leitura\n", config.textFileName.c_str());
 	} else {
-		char indexFileName[100];
-		strcpy(indexFileName, config.textFileName.c_str());
-		strcat(indexFileName, ".idx");
-		Decompressor* decompressor = new DummyDecompressor(indexFileName);	
+		Decompressor* decompressor = new DummyDecompressor(config.indexFileName.c_str());	
 		index = new SuffixTree(NULL);
 		index->decompress(decompressor);
 		for(int i = 0; i < config.patterns.size(); ++i){

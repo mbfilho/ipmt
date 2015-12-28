@@ -65,7 +65,7 @@ struct option options[] =
 IpmtConfiguration& parseOptions(int argc, char* argv[]) {
 	
 	while(true){
-	    int c = getopt_long (argc, argv, "c:", options, NULL);
+	    int c = getopt_long (argc, argv, "c", options, NULL);
 
 	    if(c == -1) 
 	    	break;

@@ -1,46 +1,53 @@
 #include "SuffixArray.h"
 #include "SuffixArray2.h"
 #include "SuffixTree.h"
+#include "OptionsParsing.cpp"
 #include <cstring>
+#include "DummyCompressor.h"
+#include "DummyDecompressor.h"
+
 #define SIZE (1<<27)
 
 char buffer[SIZE];
 char line[10000];
 
 int main(int argc, char* argv[]){
-//	if(FILE* in = fopen(argv[1], "r")){
-//		SuffixArray* array = new SuffixArray();
-//		
-//		size_t read = fread(buffer, sizeof(char), SIZE-1, in);
-//		buffer[read] = 0;
-//
-//		array->build(buffer, read);
-//		for(int i = 0; i < read; ++i)
-//			printf("%d ", array->getArray()[i]);
-//		printf("\n");
-//
-//		delete array;
-//	}
-	Index* index;
-	index = new SuffixArray();
-//	index = new SuffixTree("tree.dot");
-	if(FILE* in = fopen(argv[1], "r")){
-		size_t read = fread(buffer, sizeof(char), SIZE-2, in);
-		if(buffer[read-1] == '\n') --read;
-	//	buffer[read++] = '$';
-		buffer[read] = 0;
-		
-		index->build(buffer, read);
-		
-		if(FILE* que = fopen(argv[2], "r")) {
-			
-			while(fgets(line, sizeof(line), que)) {
-				int m = strlen(line);
-				if(line[m-1] == '\n') line[--m] = 0;
-				printf("MatchingLines for Pattern %s\n", line);
-				index->findMatchings(line, size_t(m), false);
-			}
-		}else printf("File |%s| not found\n", argv[2]);
-	}else printf("File |%s| not found\n", argv[1]);
+	IpmtConfiguration& config = parseOptions(argc, argv);
+	
+	printf("Mode %s\n", config.mode.c_str());
+
+	Index* index = NULL;
+	if(config.mode == "index") {
+		if(config.indexType == "suffixtree") {
+			printf("Usando suffixtree\n");
+			index = new SuffixTree(NULL);
+		} else if(config.indexType == "suffixarray") {
+			index = new SuffixArray();
+			printf("Usando suffixarray\n");
+		}
+		if(FILE* in = fopen(config.textFileName.c_str(), "r")){
+			size_t read = fread(buffer, sizeof(char), SIZE-2, in);
+			if(config.indexType == "suffixtree")
+				buffer[read++] = '$';
+			buffer[read] = 0;
+
+			index->build(buffer, read);
+			char indexFileName[100];
+			strcpy(indexFileName, config.textFileName.c_str());
+			strcat(indexFileName, ".idx");
+			Compressor* compressor = new DummyCompressor(indexFileName);
+			index->compress(compressor);
+		}else printf("O arquivo de texto \'%s\' não pôde ser aberto para leitura\n", config.textFileName.c_str());
+	} else {
+		char indexFileName[100];
+		strcpy(indexFileName, config.textFileName.c_str());
+		strcat(indexFileName, ".idx");
+		Decompressor* decompressor = new DummyDecompressor(indexFileName);	
+		index = new SuffixTree(NULL);
+		index->decompress(decompressor);
+		for(int i = 0; i < config.patterns.size(); ++i){
+			index->findMatchings(config.patterns[i].c_str(), config.patterns[i].size(), config.countFlag);	
+		}
+	}
 }
 

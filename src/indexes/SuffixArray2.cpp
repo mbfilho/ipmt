@@ -25,10 +25,10 @@ SuffixArray2::~SuffixArray2(){
 void SuffixArray2::build(const char* text, size_t size) {
 	this->n = size;
 	this->text = text;	
-	piecesRank = new int[MAX(256, size)];//importante que seja deste tamanho
-	suffixArray = new int[MAX(256, size)];
+	piecesRank = new int[MAX(256, size)+1];//importante que seja deste tamanho
+	suffixArray = new int[MAX(256, size)+1];
 	
-	tmp = new int[MAX(256, size)];
+	tmp = new int[MAX(256, size)+1];
 	
 	buildSuffixArray();
 	lcp = new int[size];

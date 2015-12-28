@@ -12,6 +12,9 @@ public:
 	void build(const char* text, size_t n);
 	void findMatchings(const char* pat, size_t m, bool countOnly); 
 
+	void compress(Compressor* compressor); 
+	void decompress(Decompressor* decompressor); 
+
 	//Existem apenas para rodar os testes
 	int* getArray();
 	int* getLlcp();

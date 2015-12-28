@@ -22,6 +22,14 @@ SuffixArray::~SuffixArray(){
 	if(rLcp) delete [] rLcp;
 }
 
+
+void SuffixArray::compress(Compressor* compressor) {
+}
+
+void SuffixArray::decompress(Decompressor* decompressor) {
+}
+
+
 void SuffixArray::build(const char* text, size_t size) {
 	this->n = size;
 	this->text = text;	

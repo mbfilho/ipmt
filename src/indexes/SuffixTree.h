@@ -23,6 +23,8 @@ public:
 	
 	void findMatchings(const char* pat, size_t m, bool countOnly); 
 
+	void compress(Compressor* compressor); 
+	void decompress(Decompressor* decompressor); 
 private:
 	//Os suffix links não ficam no nó para que não ocupem memória quando a árvore for carregada de um arquivo. Nessa ocasião eles não são necessários
 	vector<int> suffixLinks;

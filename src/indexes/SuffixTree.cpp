@@ -7,6 +7,12 @@ SuffixTree::SuffixTree(const char* dotFileName) {
 		dotFile = fopen(dotFileName, "w");
 }
 
+void SuffixTree::compress(Compressor* compressor) {
+}
+
+void SuffixTree::decompress(Decompressor* decompressor) {
+}
+ 
 void SuffixTree::build(const char* text, size_t n) {
 	this->text = text;
 	this->n = n;

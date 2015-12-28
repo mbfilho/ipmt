@@ -13,6 +13,13 @@ char line[10000];
 
 int main(int argc, char* argv[]){
 	IpmtConfiguration& config = parseOptions(argc, argv);
+	if(config.helpFlag) {
+		printHelpMessage();
+		exit(0);
+	} else if(!config.validateConfig()) {
+		printHelpMessage();
+		exit(1);
+	}
 	
 	printf("Mode %s\n", config.mode.c_str());
 
@@ -43,6 +50,7 @@ int main(int argc, char* argv[]){
 		index = new SuffixTree(NULL);
 		index->decompress(decompressor);
 		for(int i = 0; i < config.patterns.size(); ++i){
+			printf("Buscando padrão \'%s\' ...\n", config.patterns[i].c_str());
 			index->findMatchings(config.patterns[i].c_str(), config.patterns[i].size(), config.countFlag);	
 		}
 	}

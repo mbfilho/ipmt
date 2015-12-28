@@ -4,8 +4,13 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
+#include <string>
 using std::string;
 using std::vector;
+using std::ifstream;
+using std::getline;
 
 struct IpmtConfiguration {
 	string mode;
@@ -13,6 +18,7 @@ struct IpmtConfiguration {
 	string indexType;
 	string compression;
 	int countFlag;
+	int helpFlag;
 
 	vector<string> patterns;
 	string patternFileName;
@@ -24,11 +30,62 @@ struct IpmtConfiguration {
 	IpmtConfiguration() {
 		indexType = "suffixtree";
 		compression="dummy";
-		mode="index";
 		countFlag = 0;
 	}
 
 	bool validateConfig() {
+		bool valid = true;
+
+		if(mode != "search" && mode != "index") {
+			printf("Modo de operação \'%s\' não suportado. Você quis dizer \'search\' ou \'index\'?\n", mode.c_str());
+			return false;
+		}
+
+		if(mode == "search"){
+			if(indexFileName == "") {
+				printf("No modo \'search\' é preciso informar um arquivo que contenha um índice previamente criado.");
+				valid = false;
+			}
+
+			if(patternFileName == "" && patterns.size() == 0) {
+				printf("No modo \'search\' é preciso fornecer um padrão ou um arquivo contendo padrões\n");
+				valid = false;
+			}
+			if(patternFileName != ""){
+				ifstream patsFile(patternFileName.c_str());
+				if(!patsFile.good()) {
+					printf("Não foi possível abrir o arquivo de padrões \'%s\' para leitura\n", patternFileName.c_str());
+					valid = false;
+				} else {
+					while(patsFile.good()){
+						string line;
+						getline(patsFile, line);
+						if(line.size() > 0)
+							patterns.push_back(line);	
+					}
+
+					patsFile.close();
+					if(patterns.size() == 0){
+						printf("Aparentemente o arquivo de padrões \'%s\' está vazio.\n", patternFileName.c_str());
+						valid = false;
+					}
+				}
+			}
+
+		} else {
+			if(indexType != "suffixtree" && indexType != "suffixarray") {
+				printf("Indice não suportado: \'%s\'. Você quis dizer \'suffixtree\' ou \'suffixarray\'?\n", indexType.c_str());
+				valid = false;
+			}
+			printf("TODO: validar compressão\n");
+
+			if(textFileName == "") {
+				printf("No modo \'index\' é preciso informar um arquivo de texto a partir do qual o índice será construído.\n");
+				valid = false;
+			}
+		}
+
+		return valid;
 	}
 
 } config;
@@ -40,20 +97,13 @@ struct IpmtConfiguration {
 */
 #define COMPRESSION 1
 #define INDEXTYPE 2
-#define PATTERN 3
 struct option options[] =
 {
 	{"count", no_argument, &config.countFlag, 'c'},
+	{"help", no_argument, &config.helpFlag, 'h'},
 	{"compression", required_argument, 0, COMPRESSION},
 	{"indextype", required_argument, 0, INDEXTYPE},
-	{"pattern", required_argument, 0, PATTERN},
-
-//	{"", no_argument, &config.showAlignmentFlag, 1},
-//	{"count-only",   no_argument, &config.countOnlyFlag, 1},
-//	{"help",   no_argument, &config.showHelpMessageFlag, 1},
-//	{"algorithm", required_argument, 0, 'a'},
-//	{"edit", required_argument, 0, 'e'},
-//	{"pattern", required_argument, 0, 'p'},
+	{"pattern", required_argument, 0, 'p'},
 	{0, 0, 0, 0}
 };
 
@@ -65,46 +115,49 @@ struct option options[] =
 IpmtConfiguration& parseOptions(int argc, char* argv[]) {
 	
 	while(true){
-	    int c = getopt_long (argc, argv, "c", options, NULL);
-
+	    int c = getopt_long (argc, argv, "cp:", options, NULL);
+	
 	    if(c == -1) 
 	    	break;
 		if(c == COMPRESSION) {
 			config.compression = optarg;	
 		} else if(c == INDEXTYPE) {
 			config.indexType = optarg;
-		} else if(c == PATTERN) {
+		} else if(c == 'p') {
 			config.patternFileName = optarg;
 		} else if(c == 'c') {
 			config.countFlag = 1;
-		} else {
-			exit(1);
-		}
+		} else if(c == 'h') {
+			config.helpFlag = 1;
+			return config;//O usuário quer ajuda!  
+		} 
 	}
 
-	//parâmetros sem opções. Podem ser o padrão e os arquivos de texto
+	//parâmetros sem opções. São esperados aqui o modo de operação, o arquivo de padrões, o arquivo de texto e o arquivo de índice.
 	if (optind < argc) {
 		//Modo de operação
-		config.mode = argv[optind++];
+		if(optind < argc)
+			config.mode = argv[optind++];
 		
 		if(config.mode == "index") {
 			//o proximo valor deve ser o nome do arquivo de texto
-			config.textFileName = argv[optind++];
+			if(optind < argc)
+				config.textFileName = argv[optind++];
 		} else if(config.mode == "search") {
 			//Usuário não informou uma fonte de padrões.
 			//Então a próxima string é um padrão.
-			if(config.patternFileName == ""){ 
+			if(config.patternFileName == "" && optind < argc){ 
 				config.patterns.push_back(argv[optind++]);
 			}
-			config.indexFileName  = argv[optind++];
-		} else {
-			printf("Modo de operação não suportado: |%s|\n", config.mode.c_str());
-			exit(1);	
+			if(optind < argc)
+				config.indexFileName  = argv[optind++];
 		}
 	}
+	
 
 	return config;
 }
 
 void printHelpMessage() {
+	printf("TODO: Mensagem de ajuda\n");
 }

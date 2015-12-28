@@ -23,3 +23,8 @@ DummyCompressor.o: $(comp)/DummyCompressor.cpp $(comp)/DummyCompressor.h $(aux)/
 DummyDecompressor.o: $(comp)/DummyDecompressor.cpp $(comp)/DummyDecompressor.h $(aux)/Global.h
 	g++ -O3 -g -I $(aux) $(comp)/DummyDecompressor.cpp -c $<
 
+TrieNode.o: $(aux)/TrieNode.cpp $(aux)/TrieNode.h $(aux)/Global.h
+	g++ -O3 -g $(aux)/TrieNode.cpp -c $<
+
+LZ78C.o: $(comp)/LZ78C.cpp $(comp)/LZ78C.h $(comp)/Compressor.h $(aux)/Global.h $(aux)/TrieNode.h
+	g++ -O3 -g -I $(aux) $(comp)/LZ78C.cpp -c $<

@@ -15,5 +15,7 @@ using std::make_pair;
 using std::set;
 using std::vector;
 
+typedef unsigned long long ull;
+typedef unsigned int ui;
 
 #endif

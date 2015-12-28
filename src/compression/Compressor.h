@@ -14,7 +14,7 @@ public:
 	*/
 	virtual void writeInt(int arg) = 0;
 	virtual void writeArrayOfInts(const int* arg, int size) = 0;
-	virtual void writeByte(char arg) = 0;
+	virtual void writeByte(int arg) = 0;
 	virtual void writeText(const char* text, int size) = 0;
 
 	virtual void flushAndClose() = 0;

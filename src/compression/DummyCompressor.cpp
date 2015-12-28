@@ -17,7 +17,7 @@ void DummyCompressor::writeArrayOfInts(const int* arg, int size) {
 	assert(size == fwrite(arg, sizeof(int), size, file));
 }
 
-void DummyCompressor::writeByte(char arg) {
+void DummyCompressor::writeByte(int arg) {
 	assert(1 == fwrite(&arg, sizeof(char), 1, file));
 }
 

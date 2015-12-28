@@ -35,6 +35,7 @@ void SuffixTree::decompress(Decompressor* decompressor) {
 	for(int i = 0; i < n; ++i)
 		tmp[i] = decompressor->readByte();
 	tmp[n-1] = 0;
+	text = tmp;
 
 	//Atenção para a leitura dos nós!
 	//A ordem tem que ser a mesma da escrita!

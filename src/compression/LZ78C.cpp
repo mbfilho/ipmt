@@ -74,8 +74,8 @@ int LZ78C::getSizeInBits(int arg) {
 *	O(log(a2) + log log(a2))
 */
 void LZ78C::encodeInt(int arg) {
-	int size = getSizeInBits(arg);
-	int sizeOfSize = getSizeInBits(size);
+	int size = (arg == 0 ? 1 : 32 - __builtin_clz(arg));
+	int sizeOfSize = (size == 0 ? 1 : 32 - __builtin_clz(size));
 	ull token = 0; //token eh o monte de bits gerados da codificação de 'arg'
 	
 	//representação unária de size

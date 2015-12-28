@@ -4,7 +4,7 @@
 #include "TrieNode.h"
 #include "Global.h"
 
-#define BUFFER_MAX_SIZE 1024
+#define BUFFER_MAX_SIZE (1<<17)
 #define MIN(a,b) ((a)<(b))?(a):(b)
 class LZ78C : public Compressor {
 public:

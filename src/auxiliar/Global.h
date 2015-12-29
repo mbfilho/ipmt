@@ -16,8 +16,12 @@ using std::make_pair;
 using std::set;
 using std::vector;
 using std::list;
+using std::make_heap;
+using std::sort_heap;
 
 typedef unsigned long long ull;
 typedef unsigned int ui;
 
+#define MIN(a,b) ((a)<(b))?(a):(b)
+#define MAX(a,b) (((a) < (b))?(b):(a))
 #endif

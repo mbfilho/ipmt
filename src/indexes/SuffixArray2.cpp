@@ -1,9 +1,5 @@
 #include "SuffixArray2.h"
-#include <algorithm>
-using namespace std;
 
-#define MAX(a,b) (((a) < (b))?(b):(a))
-#define MIN(a,b) (((a) < (b))?(a):(b))
 SuffixArray2::SuffixArray2(){
 	piecesRank = NULL;
 	suffixArray = NULL;

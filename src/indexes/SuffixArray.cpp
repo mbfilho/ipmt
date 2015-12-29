@@ -1,6 +1,5 @@
 #include "SuffixArray.h"
-#define MAX(a,b) (((a) < (b))?(b):(a))
-#define MIN(a,b) (((a) < (b))?(a):(b))
+
 #define getPair(pos,out) {out[0]=piecesRank[pos],out[1]=(pos+(1<<k)) >= n ? 0 : piecesRank[pos+(1<<k)];}
 SuffixArray::SuffixArray(){
 	piecesRank = NULL;

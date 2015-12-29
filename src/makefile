@@ -2,8 +2,11 @@ aux = auxiliar
 idx = indexes
 comp = compression
 
-all: $(idx)/Main.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o TrieNode.o InputBuffer.o LZWC.o LZWD.o
-	g++ -O3 -g -I $(aux) -I $(comp) $(idx)/Main.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o TrieNode.o InputBuffer.o LZWC.o LZWD.o
+all: $(idx)/Main.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o TrieNode.o InputBuffer.o LZWC.o LZWD.o Compressor.o
+	g++ -O3 -g -I $(aux) -I $(comp) SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o TrieNode.o InputBuffer.o LZWC.o LZWD.o Compressor.o $<
+
+Compressor.o: $(comp)/Compressor.cpp $(comp)/Compressor.h $(aux)/Global.h
+	g++ -O3 -g -I $(aux) -c $<
 
 SuffixArray.o: $(idx)/SuffixArray.cpp $(idx)/SuffixArray.h $(idx)/Index.h $(aux)/Global.h $(aux)/Printer.h $(comp)/Compressor.h $(comp)/Decompressor.h
 	g++ -O3 -g -I $(aux) -I $(comp) -c $<
@@ -45,6 +48,6 @@ SlidingWindow.o: $(aux)/SlidingWindow.cpp $(aux)/SlidingWindow.h
 LZ77C.o: $(comp)/LZ77C.cpp $(comp)/LZ77C.h $(aux)/Global.h $(aux)/SlidingWindow.h $(comp)/Compressor.h
 	g++ -O3 -g -I $(aux) $(comp)/LZ77C.cpp -c $<
 
-TestCompression: $(comp)/TestCompression.cpp LZ78C.o $(aux)/Global.h TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o LZ77C.o SlidingWindow.o
-	g++ -O3 -g -I $(aux) -I $(comp) $(comp)/TestCompression.cpp LZ78C.o TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o LZ77C.o SlidingWindow.o -o comp
+TestCompression: $(comp)/TestCompression.cpp LZ78C.o $(aux)/Global.h TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o LZ77C.o SlidingWindow.o
+	g++ -O3 -g -I $(aux) -I $(comp) LZ78C.o TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o LZ77C.o SlidingWindow.o Compressor.o LZ77C.o SlidingWindow.o -o comp $<
 

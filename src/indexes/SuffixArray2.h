@@ -1,12 +1,9 @@
 #ifndef SUFFIX_ARRAY_2
 #define SUFFIX_ARRAY_2
-#include <cstdio>
-#include <algorithm>
 #include "Index.h"
+#include "Global.h"
 
 #define getPair(pos,out) {out[0]=piecesRank[pos],out[1]=(pos+(1<<k)) >= n ? 0 : piecesRank[pos+(1<<k)];}
-using std::pair;
-using std::make_pair;
 
 class SuffixArray2 : public Index {
 public:

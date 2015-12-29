@@ -27,6 +27,7 @@ private:
 	int lastNode; //O último nó decodificado. Ele representa um casamento e precisa ser estendido com a letra que ocasionou o mismatch. Mas essa letra só é conhecida na leitura seguinte
 
 	void readToken();
+	int readBit();
 	int decodeInt();
 };
 #endif

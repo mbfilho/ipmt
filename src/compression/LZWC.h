@@ -26,6 +26,7 @@ private:
 
 	FILE* file;
 	
+	void writeBit(int arg);
 	void encodeInt(int arg);
 	void insertIntoBuffer(ull token, int tokenSize);
 	void flush();

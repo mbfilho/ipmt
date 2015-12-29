@@ -3,7 +3,7 @@
 
 LZWD::LZWD(const char* fileName): input(fileName) {
 	trie.push_back(ReversedTrieNode(-1, 0));//a raiz
-	for(int i = 0; i < 256; ++i) {
+	for(int i = 0; i < 2; ++i) {
 		trie.push_back(ReversedTrieNode(0, i));
 	}
 	lastNode = -1;
@@ -16,16 +16,24 @@ void LZWD::close() {
 int LZWD::readInt() {
 	int ret = 0;
 	for(int i = 0; i < 4; ++i) 
-		ret |= (readByte() + 128) << (i * 8);
+		ret |= (readByte() ) << (i * 8);
 	return ret;	
 }
 
-int LZWD::readByte() {
+int LZWD::readBit() {
 	if(buffer.size() == 0)
 		readToken();
-	int byte = buffer.front() - 128;
+	int bit = buffer.front();
 	buffer.pop_front();
 
+	return bit;
+}
+
+int LZWD::readByte() {
+	int byte = 0;
+	for(int i = 0; i < 8; ++i){
+		byte |= readBit() << i;
+	}
 	return byte;
 }
 

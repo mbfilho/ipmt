@@ -4,7 +4,7 @@
 LZWC::LZWC(const char* fileName) {
 	currentNode = 0;
 	trie.push_back(TrieNode());//Root
-	for(int i = 0; i < 256; ++i) {
+	for(int i = 0; i < 2; ++i) {
 		trie.push_back(TrieNode());
 		trie[0].addChild(i, trie.size()-1, trie.back());
 	}
@@ -34,23 +34,31 @@ void LZWC::writeArrayOfInts(const int* arg, int size) {
 
 void LZWC::writeText(const char* text, int size) {
 	for(int i = 0; i < size; ++i)
-		writeByte(text[i]+128);
+		writeByte(text[i]);
 }
 
-void LZWC::writeByte(int arg) {
+void LZWC::writeBit(int arg) {
 	int nextNode = trie[currentNode].getChild(arg, trie);
 	if(nextNode == -1) {
 		encodeInt(currentNode); //O indice do termo no dicionário
-	
+
 		//Insere o termo no dicionário	
 		trie.push_back(TrieNode());
 		trie[currentNode].addChild(arg, trie.size()-1, trie.back());
-		
+
 		currentNode = trie[0].getChild(arg, trie);
 		if(currentNode == -1) printf("> %d\n", arg);
 		assert(currentNode != -1);
 	} else 
 		currentNode = nextNode;
+}
+
+void LZWC::writeByte(int arg) {
+	for(int i = 0; i < 8; ++i){
+		if(arg&1) writeBit(1);
+		else writeBit(0);
+		arg >>= 1;
+	}
 }
 
 

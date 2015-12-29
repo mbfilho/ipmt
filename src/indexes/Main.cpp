@@ -5,6 +5,8 @@
 #include <cstring>
 #include "DummyCompressor.h"
 #include "DummyDecompressor.h"
+#include "LZ78C.h"
+#include "LZ78D.h"
 
 #define SIZE (1<<27)
 
@@ -42,13 +44,15 @@ int main(int argc, char* argv[]){
 			char indexFileName[100];
 			strcpy(indexFileName, config.textFileName.c_str());
 			strcat(indexFileName, ".idx");
-			Compressor* compressor = new DummyCompressor(indexFileName);
+			Compressor* compressor = new LZ78C(indexFileName);
 			index->compress(compressor);
+			compressor->flushAndClose();
 		}else printf("O arquivo de texto \'%s\' não pôde ser aberto para leitura\n", config.textFileName.c_str());
 	} else {
-		Decompressor* decompressor = new DummyDecompressor(config.indexFileName.c_str());	
+		Decompressor* decompressor = new LZ78D(config.indexFileName.c_str());	
 		index = new SuffixTree(NULL);
 		index->decompress(decompressor);
+		decompressor->close();
 		for(int i = 0; i < config.patterns.size(); ++i){
 			printf("Buscando padrão \'%s\' ...\n", config.patterns[i].c_str());
 			index->findMatchings(config.patterns[i].c_str(), config.patterns[i].size(), config.countFlag);	

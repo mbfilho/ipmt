@@ -2,8 +2,8 @@ aux = auxiliar
 idx = indexes
 comp = compression
 
-all: $(idx)/Main.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o
-	g++ -O3 -g -I $(aux) -I $(comp) $(idx)/Main.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o
+all: $(idx)/Main.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o TrieNode.o InputBuffer.o
+	g++ -O3 -g -I $(aux) -I $(comp) $(idx)/Main.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o TrieNode.o InputBuffer.o
 
 SuffixArray.o: $(idx)/SuffixArray.cpp $(idx)/SuffixArray.h $(idx)/Index.h $(aux)/Global.h $(aux)/Printer.h $(comp)/Compressor.h $(comp)/Decompressor.h
 	g++ -O3 -g -I $(aux) -I $(comp) -c $<
@@ -26,9 +26,14 @@ DummyDecompressor.o: $(comp)/DummyDecompressor.cpp $(comp)/DummyDecompressor.h $
 TrieNode.o: $(aux)/TrieNode.cpp $(aux)/TrieNode.h $(aux)/Global.h
 	g++ -O3 -g $(aux)/TrieNode.cpp -c $<
 
+InputBuffer.o: $(aux)/InputBuffer.cpp $(aux)/InputBuffer.h $(aux)/Global.h
+	g++ -O3 -g $(aux)/InputBuffer.cpp -c $<
+
 LZ78C.o: $(comp)/LZ78C.cpp $(comp)/LZ78C.h $(comp)/Compressor.h $(aux)/Global.h $(aux)/TrieNode.h
 	g++ -O3 -g -I $(aux) $(comp)/LZ78C.cpp -c $<
+LZ78D.o: $(comp)/LZ78D.cpp $(comp)/LZ78D.h $(comp)/Decompressor.h $(aux)/Global.h $(aux)/InputBuffer.h
+	g++ -O3 -g -I $(aux) $(comp)/LZ78D.cpp -c $<
 
-TestCompression: $(comp)/TestCompression.cpp LZ78C.o $(aux)/Global.h TrieNode.o
-	g++ -O3 -g -I $(aux) -I $(comp) $(comp)/TestCompression.cpp LZ78C.o TrieNode.o -o comp
+TestCompression: $(comp)/TestCompression.cpp LZ78C.o $(aux)/Global.h TrieNode.o LZ78D.o InputBuffer.o
+	g++ -O3 -g -I $(aux) -I $(comp) $(comp)/TestCompression.cpp LZ78C.o TrieNode.o LZ78D.o InputBuffer.o -o comp
 

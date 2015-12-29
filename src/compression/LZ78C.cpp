@@ -82,8 +82,8 @@ void LZ78C::insertIntoBuffer(ull token, int tokenSize){
 	int filledbits = 0;
 	if(bufferSize) {//verifica se pode 'encher' o último elemento do buffer
 		ull& lastToken = buffer[bufferSize-1];
-		ull tmp = lastToken;
-		lastToken |= token << lastTokenSize;
+		
+		lastToken |= token << lastTokenSize;//O comportamento é indeterminado quando lastTokenSize=64 (a.k.a não funciona e para achar o erro é difícil).
 		
 		filledbits = MIN(64 - lastTokenSize, tokenSize); //a quantidade de bits acrescentados ao último elemento
 		lastTokenSize += filledbits;

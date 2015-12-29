@@ -5,9 +5,10 @@ class SlidingWindow {
 public:
 	SlidingWindow(int maximumSize);
 	
-	int getValueAt(int pos);
-	void appendElement(int element);
+	int get(int pos);
+	void append(int element);
 	int getSize();
+	bool isFull();
 	int slide(int slideSize);
 private:
 	int maxSize;

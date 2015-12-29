@@ -7,13 +7,17 @@ SlidingWindow::SlidingWindow(int maximumSize) {
 	buffer = new int[maxSize];
 }
 
-int SlidingWindow::getValueAt(int pos) {
+int SlidingWindow::get(int pos) {
 	return buffer[FIX_POS(pos + curPos)];
 }
 
-void SlidingWindow::appendElement(int arg) {
+void SlidingWindow::append(int arg) {
 	buffer[FIX_POS(curPos + size)] = arg;
 	++size;
+}
+
+bool SlidingWindow::isFull() {
+	return size == maxSize;
 }
 
 int SlidingWindow::getSize() {

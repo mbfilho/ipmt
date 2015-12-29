@@ -39,6 +39,9 @@ LZWC.o: $(comp)/LZWC.cpp $(comp)/LZWC.h $(comp)/Compressor.h $(aux)/Global.h $(a
 LZWD.o: $(comp)/LZWD.cpp $(comp)/LZWD.h $(comp)/Decompressor.h $(aux)/Global.h $(aux)/InputBuffer.h
 	g++ -O3 -g -I $(aux) $(comp)/LZWD.cpp -c $<
 
+SlidingWindow.o: $(aux)/SlidingWindow.cpp $(aux)/SlidingWindow.h 
+	g++ -O3 -g $(aux)/SlidingWindow.cpp -c $<
+
 TestCompression: $(comp)/TestCompression.cpp LZ78C.o $(aux)/Global.h TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o
 	g++ -O3 -g -I $(aux) -I $(comp) $(comp)/TestCompression.cpp LZ78C.o TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o -o comp
 

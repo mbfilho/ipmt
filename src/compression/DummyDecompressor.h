@@ -6,7 +6,7 @@ public:
 	DummyDecompressor(const char* filename);
 
 	int readInt();
-	char readByte();
+	int readByte();
 	void close();
 
 private:

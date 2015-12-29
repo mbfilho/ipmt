@@ -15,8 +15,8 @@ DummyDecompressor::DummyDecompressor(const char* filename) {
 	return tmp;
  }
 
- char DummyDecompressor::readByte() {
- 	char tmp;
+int DummyDecompressor::readByte() {
+ 	int tmp;
 	assert(1 == fread(&tmp, sizeof(char), 1, file));
 
 	return tmp;

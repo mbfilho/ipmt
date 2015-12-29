@@ -7,6 +7,8 @@
 #include "DummyDecompressor.h"
 #include "LZ78C.h"
 #include "LZ78D.h"
+#include "LZWD.h"
+#include "LZWC.h"
 
 #define SIZE (1<<27)
 
@@ -44,12 +46,12 @@ int main(int argc, char* argv[]){
 			char indexFileName[100];
 			strcpy(indexFileName, config.textFileName.c_str());
 			strcat(indexFileName, ".idx");
-			Compressor* compressor = new LZ78C(indexFileName);
+			Compressor* compressor = new LZWC(indexFileName);
 			index->compress(compressor);
 			compressor->flushAndClose();
 		}else printf("O arquivo de texto \'%s\' não pôde ser aberto para leitura\n", config.textFileName.c_str());
 	} else {
-		Decompressor* decompressor = new LZ78D(config.indexFileName.c_str());	
+		Decompressor* decompressor = new LZWD(config.indexFileName.c_str());	
 		index = new SuffixTree(NULL);
 		index->decompress(decompressor);
 		decompressor->close();

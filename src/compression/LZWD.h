@@ -1,12 +1,12 @@
-#ifndef LZ78D_H
-#define LZ78D_H
+#ifndef LZWD_H
+#define LZWD_H
 #include "InputBuffer.h"
 #include "Decompressor.h"
 
 
-class LZ78D : public Decompressor {
+class LZWD : public Decompressor {
 public:
-	LZ78D(const char* fileName);
+	LZWD(const char* fileName);
 	
 	int readInt();
 	int readByte();
@@ -24,6 +24,7 @@ private:
 	list<int> buffer;
 
 	vector<ReversedTrieNode> trie;
+	int lastNode; //O último nó decodificado. Ele representa um casamento e precisa ser estendido com a letra que ocasionou o mismatch. Mas essa letra só é conhecida na leitura seguinte
 
 	void readToken();
 	int decodeInt();

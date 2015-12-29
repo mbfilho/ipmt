@@ -79,21 +79,28 @@ void LZ78C::encodeInt(int arg) {
 
 
 void LZ78C::insertIntoBuffer(ull token, int tokenSize){
+	int filledbits = 0;
 	if(bufferSize) {//verifica se pode 'encher' o último elemento do buffer
 		ull& lastToken = buffer[bufferSize-1];
-
+		ull tmp = lastToken;
 		lastToken |= token << lastTokenSize;
-		int filledbits = MIN(64 - lastTokenSize, tokenSize); //a quantidade de bits acrescentados ao último elemento
+		
+		filledbits = MIN(64 - lastTokenSize, tokenSize); //a quantidade de bits acrescentados ao último elemento
 		lastTokenSize += filledbits;
 		
 		//descarta os bits que foram colocados no último elemento
-		token <<= filledbits;
+		token >>= filledbits;
 		tokenSize -= filledbits;
 	}
 
 	if(tokenSize) {
 		buffer[bufferSize++] = token;
 		lastTokenSize = tokenSize;
+	}
+
+	if(lastTokenSize == 64) {
+		buffer[bufferSize++] = 0;
+		lastTokenSize = 0;
 	}
 	
 	if(bufferSize >= BUFFER_MAX_SIZE)
@@ -105,7 +112,6 @@ void LZ78C::insertIntoBuffer(ull token, int tokenSize){
 */
 void LZ78C::flush() {
 	if(bufferSize < 1) return;
-
 	assert(bufferSize - 1 == fwrite(buffer, sizeof(ull), bufferSize - 1, file));
 	buffer[0] = buffer[bufferSize-1];
 	bufferSize = 1;
@@ -116,6 +122,7 @@ void LZ78C::flushAndClose() {
 		encodeInt(currentNode);
 		encodeInt(256);//Um caracter imaginário fora do alfabeto
 	}
+
 	flush();
 	if(bufferSize == 1) {
 		assert(1 == fwrite(&buffer[0], sizeof(ull), 1, file));

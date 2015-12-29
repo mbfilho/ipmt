@@ -25,6 +25,24 @@ LZ77C::LZ77C(const char* fileName, int bufferSize, int lookAheadSize) : window(b
 	outSize = 0;
 }
 
+void LZ77C::writeInt(int arg) {
+	ui u = ui(arg);
+	for(int i = 0; i < 4; ++i) {
+		writeByte(u & 0xff);	
+		u >>= 8;
+	}
+}
+
+void LZ77C::writeArrayOfInts(const int* arg, int size) {
+	for(int i = 0; i < size; ++i)
+		writeInt(arg[i]);
+}
+
+void LZ77C::writeText(const char* text, int size) {
+	for(int i = 0; i < size; ++i)
+		writeByte(text[i]);
+}
+
 void LZ77C::writeByte(int arg) {
 	window.append(arg);
 	if(window.isFull())
@@ -70,18 +88,17 @@ void LZ77C::emmitToken() {
 		//não dá pra fazer melhor que isso
 		if(k == wl - 1) 
 			break;
-		
 	}
 	int mismatchingChar = 0;
-	if(bestMatchingPos + bestMatchingSize < window.getSize())
-		mismatchingChar = window.get(bestMatchingPos + bestMatchingSize);
+	if(WB + bestMatchingSize < window.getSize())
+		mismatchingChar = window.get(WB + bestMatchingSize);
 
 	ull token = 
 		bestMatchingPos
 		| (ull(bestMatchingSize) << 23)
 		| (ull(ui(mismatchingChar)) << 56);
 	insertIntoBuffer(token);
-
+	
 	window.slide(bestMatchingSize+1);
 }
 

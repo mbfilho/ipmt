@@ -3,13 +3,14 @@
 #include "LZ78D.h"
 #include "LZWC.h"
 #include "LZWD.h"
+#include "LZ77C.h"
 
 char buffer[1<<20];
 void testCompression(const char *input, const char *output) {
 	FILE* in = fopen(input, "rb");
 	
 	assert(in);
-	LZWC comp(output);
+	LZ78C comp(output);
 	int tot = 0;	
 	while(true) {
 		int read = fread(buffer, sizeof(char), 1<<20, in);
@@ -20,7 +21,7 @@ void testCompression(const char *input, const char *output) {
 	printf("> %d\n", tot);
 	comp.flushAndClose();
 
-	LZWD dec(output);
+	LZ78D dec(output);
 	FILE* decomp = fopen("decomp", "wb");
 	int b;
 //	int tot = 52428800;
@@ -45,8 +46,19 @@ void testCompressionAndDecompression() {
 	decomp.close();
 }
 
+void testOnlyCompression() {
+	LZ77C comp("out", 4, 4);
+	int seq[] = {0, 1, 1, 2, 0, 1, 1, 0, 2, 3, 0, 1, 0, 0, 0};
+	int s = 15;
+
+	for(int i = 0; i < s; ++i)
+		comp.writeByte(seq[i]);
+	comp.flushAndClose();
+}
+
 int main(int argc, char* argv[]) {
-	testCompression(argv[1], argv[2]);	
+	testOnlyCompression();
+//	testCompression(argv[1], argv[2]);	
 //	testCompressionAndDecompression();
 }
 

@@ -10,11 +10,6 @@ LZWC::LZWC(const char* fileName):Compressor(fileName) {
 	}
 }
 
-void LZWC::writeText(const char* text, int size) {
-	for(int i = 0; i < size; ++i)
-		writeByte(text[i]+128);
-}
-
 void LZWC::writeByte(int arg) {
 	int nextNode = hashTable->get(make_pair(currentNode, arg));
 	if(nextNode == -1) {

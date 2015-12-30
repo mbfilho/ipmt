@@ -21,17 +21,15 @@ public:
 	virtual void writeArrayOfInts(const int* arg, int size);
 	virtual void writeText(const char* text, int size);
 	
-	
 	virtual void writeByte(int arg) = 0;
 	virtual void flushAndClose() = 0;
 
-	FILE* outputFile;
-
-	ull* outputBuffer;
-	int lastTokenSize; //a quantidade de bits utilizados no último elemento de 'buffer'
-	int outputBufferSize;
+	int lastTokenSize; //a quantidade de bits utilizados em token 
+	ull lastToken;
 
 protected:
+	FILE* outputFile;
+
 	/*
 	* Método utilizado pelos algoritmos LZW e LZ78
 	* Estratégia:

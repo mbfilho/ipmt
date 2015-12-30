@@ -3,7 +3,6 @@
 #include "InputBuffer.h"
 #include "Decompressor.h"
 
-
 class LZWD : public Decompressor {
 public:
 	LZWD(const char* fileName);

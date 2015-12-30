@@ -16,14 +16,14 @@ void LZWD::close() {
 int LZWD::readInt() {
 	int ret = 0;
 	for(int i = 0; i < 4; ++i) 
-		ret |= (readByte() + 128) << (i * 8);
+		ret |= readByte()  << (i * 8);
 	return ret;	
 }
 
 int LZWD::readByte() {
 	if(buffer.size() == 0)
 		readToken();
-	int byte = buffer.front() - 128;
+	int byte = buffer.front();
 	buffer.pop_front();
 
 	return byte;
@@ -32,7 +32,6 @@ int LZWD::readByte() {
 void LZWD::readToken() {
 	int trieNode = decodeInt();
 	if(trieNode == trie.size()) {
-			
 		list<int>::iterator it = buffer.end();
 		for(int i = lastNode; i != 0; i = trie[i].parent) 
 			it = buffer.insert(it, trie[i].label);

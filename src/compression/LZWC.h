@@ -8,7 +8,6 @@ public:
 	LZWC(const char* fileName);
 
 	void writeByte(int arg);
-	void writeText(const char* text, int size);
 
 	void flushAndClose();
 private:

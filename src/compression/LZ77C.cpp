@@ -1,6 +1,6 @@
 #include "LZ77C.h"
 
-LZ77C::LZ77C(const char* fileName, int bufferSize, int lookAheadSize) : window(bufferSize + lookAheadSize), Compressor(fileName) {
+LZ77C::LZ77C(const char* fileName, int bufferSize, int lookAheadSize) : Compressor(fileName) {
 	WB = bufferSize;
 	WL = lookAheadSize;
 	
@@ -20,36 +20,56 @@ LZ77C::LZ77C(const char* fileName, int bufferSize, int lookAheadSize) : window(b
 	* precisamos preencher com alguma coisa.
 	*/
 	for(int i = 0; i < WB; ++i)
-		window.append(0);
-
+		window[i] = 0;
+	windowSize = WB;
 }
 
 void LZ77C::writeByte(int arg) {
-	window.append(arg);
-	if(window.isFull())
-		emmitToken();
+	window[windowSize++] = arg;
+	if(windowSize == MAX_WINDOW_SIZE-1) 
+		emmitTokens(false);
 }
 
-void LZ77C::buildFailFunction() {
+void LZ77C::buildFailFunction(uchar* ahead, int aSize) {
 	int k = fail[0] = -1;
-	int wl = window.getSize() - WB;
-	for(int i = 1; i < wl; ++i){
-		int cur = window.get(i+WB);
-		while(k != -1 && cur != window.get(WB + k + 1))
+	for(int i = 1; i < aSize; ++i){
+		while(k != -1 && ahead[i] != ahead[k+1])
 			k = fail[k];
-		if(cur == window.get(WB + k + 1))
+		if(ahead[i] == ahead[k+1])
 			++k;
 		fail[i] = k;
 	}
 }
 
-void LZ77C::emmitToken() {
-	assert(window.getSize() > WB);
+void LZ77C::emmitTokens(bool last) {
+	int size = windowSize;
+	uchar* curWindow = window;
+	while(size >= WB + WL){
+		int jump = emmitToken(curWindow, WB+WL);
+		size -= jump;
+		curWindow += jump;
+	}
 
-	buildFailFunction();	
-	int k = -1;
-	ui bestMatchingSize = 0, bestMatchingPos;
-	int wl = window.getSize() - WB ;
+	assert(size >= WB);
+
+	if(last) {
+		while(size > WB) {
+			int jump = emmitToken(curWindow, size);
+			size -= jump;
+			curWindow += jump;
+		}
+	} else {
+		for(int i = 0; i < size; ++i)
+			window[i] = curWindow[i];
+		windowSize = size;
+	}
+}
+
+int LZ77C::emmitToken(uchar* curWindow, int wSize) {
+	int wl = wSize - WB, k = -1;
+	buildFailFunction(curWindow + WB, wl);	
+
+	ui bestMatchingSize = 0, bestMatchingPos, mismatchingChar = 0;
 
 	/*Investigar melhor maneira de fazer isso.
 	* Garante que sempre vai haver um caractere de mismatching.
@@ -58,11 +78,10 @@ void LZ77C::emmitToken() {
 	if(wl == WL) 
 		--wl;
 
-	for(int i = 0; i < window.getSize(); ++i){
-		int cur = window.get(i);
-		while(k != -1 && window.get(WB + k+1) != cur)
+	for(int i = 0; i < wSize; ++i){
+		while(k != -1 && curWindow[WB + k+1] != curWindow[i])
 			k = fail[k];
-		if(window.get(WB + k+1) == cur)
+		if(curWindow[WB+k+1] == curWindow[i])
 			++k;
 
 		int matchingPos = i - k;
@@ -72,29 +91,27 @@ void LZ77C::emmitToken() {
 		if((k+1) >= bestMatchingSize) {
 			bestMatchingSize = k + 1;
 			bestMatchingPos = i - k;
+			mismatchingChar = curWindow[WB+bestMatchingSize];
 		}
 		
 		//não dá pra fazer melhor que isso
 		if(k == wl - 1) 
 			break;
 	}
-	int mismatchingChar = 0;
-	if(WB + bestMatchingSize < window.getSize())
-		mismatchingChar = window.get(WB + bestMatchingSize);
 
 	ull token = 
 		bestMatchingPos
 		| (ull(bestMatchingSize) << (bitsWB))
 		| (ull(ui(mismatchingChar)) << (bitsWB+bitsWL));
-	insertIntoBuffer(token, 8 + bitsWB + bitsWL);
 
-	window.slide(bestMatchingSize+1);
+	insertIntoBuffer(token, 8 + bitsWB + bitsWL);
+	
+	return bestMatchingSize+1;
 }
 
 void LZ77C::flushAndClose() {
-	while(window.getSize() > WB) 
-		emmitToken();
-	
+	emmitTokens(true);
+
 	flush(true);
 	close();
 }

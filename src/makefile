@@ -28,6 +28,8 @@ DummyDecompressor.o: $(comp)/DummyDecompressor.cpp $(comp)/DummyDecompressor.h $
 
 TrieNode.o: $(aux)/TrieNode.cpp $(aux)/TrieNode.h $(aux)/Global.h
 	g++ -O3 -g $(aux)/TrieNode.cpp -c $<
+HashTable.o: $(aux)/HashTable.cpp $(aux)/HashTable.h $(aux)/Global.h
+	g++ -O3 -g -c $<
 
 InputBuffer.o: $(aux)/InputBuffer.cpp $(aux)/InputBuffer.h $(aux)/Global.h
 	g++ -O3 -g $(aux)/InputBuffer.cpp -c $<
@@ -37,20 +39,20 @@ LZ78C.o: $(comp)/LZ78C.cpp $(comp)/LZ78C.h $(comp)/Compressor.h $(aux)/Global.h 
 LZ78D.o: $(comp)/LZ78D.cpp $(comp)/LZ78D.h $(comp)/Decompressor.h $(aux)/Global.h $(aux)/InputBuffer.h
 	g++ -O3 -g -I $(aux) $(comp)/LZ78D.cpp -c $<
 
-LZWC.o: $(comp)/LZWC.cpp $(comp)/LZWC.h $(comp)/Compressor.h $(aux)/Global.h $(aux)/TrieNode.h
-	g++ -O3 -g -I $(aux) $(comp)/LZWC.cpp -c $<
+LZWC.o: $(comp)/LZWC.cpp $(comp)/LZWC.h $(comp)/Compressor.h $(aux)/Global.h $(aux)/HashTable.h
+	g++ -O3 -g -I $(aux) -c $<
 LZWD.o: $(comp)/LZWD.cpp $(comp)/LZWD.h $(comp)/Decompressor.h $(aux)/Global.h $(aux)/InputBuffer.h
 	g++ -O3 -g -I $(aux) $(comp)/LZWD.cpp -c $<
 
 SlidingWindow.o: $(aux)/SlidingWindow.cpp $(aux)/SlidingWindow.h 
 	g++ -O3 -g -c $<
 
-LZ77C.o: $(comp)/LZ77C.cpp $(comp)/LZ77C.h $(aux)/Global.h $(aux)/SlidingWindow.h $(comp)/Compressor.h
+LZ77C.o: $(comp)/LZ77C.cpp $(comp)/LZ77C.h $(aux)/Global.h $(comp)/Compressor.h
 	g++ -O3 -g -I $(aux)  -c $<
 LZ77D.o: $(comp)/LZ77D.cpp $(comp)/LZ77D.h $(aux)/InputBuffer.h $(aux)/SlidingWindow.h $(comp)/Decompressor.h
 	g++ -O3 -g -I $(aux)  -c $<
 
-TestCompression: $(comp)/TestCompression.cpp LZ78C.o $(aux)/Global.h TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o LZ77C.o SlidingWindow.o LZ77D.o
-	g++ -O3 -g -I $(aux) -I $(comp) LZ78C.o TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o LZ77C.o SlidingWindow.o Compressor.o LZ77D.o -o comp $<
+TestCompression: $(comp)/TestCompression.cpp LZ78C.o $(aux)/Global.h TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o LZ77C.o SlidingWindow.o LZ77D.o HashTable.o
+	g++ -O3 -g -I $(aux) -I $(comp) LZ78C.o TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o LZ77C.o SlidingWindow.o Compressor.o LZ77D.o HashTable.o -o comp $<
 
 

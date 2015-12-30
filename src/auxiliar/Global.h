@@ -21,6 +21,7 @@ using std::sort_heap;
 
 typedef unsigned long long ull;
 typedef unsigned int ui;
+typedef unsigned char uchar;
 
 #define MIN(a,b) ((a)<(b))?(a):(b)
 #define MAX(a,b) (((a) < (b))?(b):(a))

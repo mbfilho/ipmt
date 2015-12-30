@@ -2,8 +2,8 @@ aux = auxiliar
 idx = indexes
 comp = compression
 
-all: $(idx)/Main.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o TrieNode.o InputBuffer.o LZWC.o LZWD.o Compressor.o
-	g++ -O3 -g -I $(aux) -I $(comp) SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o TrieNode.o InputBuffer.o LZWC.o LZWD.o Compressor.o $<
+all: $(idx)/Main.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o HashTable.o
+	g++ -O3 -g -I $(aux) -I $(comp) SuffixArray.o SuffixArray2.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o HashTable.o Compressor.o $<
 
 Compressor.o: $(comp)/Compressor.cpp $(comp)/Compressor.h $(aux)/Global.h
 	g++ -O3 -g -I $(aux) -c $<
@@ -26,8 +26,6 @@ DummyCompressor.o: $(comp)/DummyCompressor.cpp $(comp)/DummyCompressor.h $(aux)/
 DummyDecompressor.o: $(comp)/DummyDecompressor.cpp $(comp)/DummyDecompressor.h $(aux)/Global.h
 	g++ -O3 -g -I $(aux) $(comp)/DummyDecompressor.cpp -c $<
 
-TrieNode.o: $(aux)/TrieNode.cpp $(aux)/TrieNode.h $(aux)/Global.h
-	g++ -O3 -g $(aux)/TrieNode.cpp -c $<
 HashTable.o: $(aux)/HashTable.cpp $(aux)/HashTable.h $(aux)/Global.h
 	g++ -O3 -g -c $<
 
@@ -52,7 +50,7 @@ LZ77C.o: $(comp)/LZ77C.cpp $(comp)/LZ77C.h $(aux)/Global.h $(comp)/Compressor.h
 LZ77D.o: $(comp)/LZ77D.cpp $(comp)/LZ77D.h $(aux)/InputBuffer.h $(aux)/SlidingWindow.h $(comp)/Decompressor.h
 	g++ -O3 -g -I $(aux)  -c $<
 
-TestCompression: $(comp)/TestCompression.cpp LZ78C.o $(aux)/Global.h TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o LZ77C.o SlidingWindow.o LZ77D.o HashTable.o
-	g++ -O3 -g -I $(aux) -I $(comp) LZ78C.o TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o LZ77C.o SlidingWindow.o Compressor.o LZ77D.o HashTable.o -o comp $<
+TestCompression: $(comp)/TestCompression.cpp LZ78C.o $(aux)/Global.h LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o LZ77C.o SlidingWindow.o LZ77D.o HashTable.o
+	g++ -O3 -g -I $(aux) -I $(comp) LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o LZ77C.o SlidingWindow.o Compressor.o LZ77D.o HashTable.o -o comp $<
 
 

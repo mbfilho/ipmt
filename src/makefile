@@ -47,7 +47,10 @@ SlidingWindow.o: $(aux)/SlidingWindow.cpp $(aux)/SlidingWindow.h
 
 LZ77C.o: $(comp)/LZ77C.cpp $(comp)/LZ77C.h $(aux)/Global.h $(aux)/SlidingWindow.h $(comp)/Compressor.h
 	g++ -O3 -g -I $(aux)  -c $<
+LZ77D.o: $(comp)/LZ77D.cpp $(comp)/LZ77D.h $(aux)/InputBuffer.h $(aux)/SlidingWindow.h $(comp)/Decompressor.h
+	g++ -O3 -g -I $(aux)  -c $<
 
-TestCompression: $(comp)/TestCompression.cpp LZ78C.o $(aux)/Global.h TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o LZ77C.o SlidingWindow.o
-	g++ -O3 -g -I $(aux) -I $(comp) LZ78C.o TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o LZ77C.o SlidingWindow.o Compressor.o -o comp $<
+TestCompression: $(comp)/TestCompression.cpp LZ78C.o $(aux)/Global.h TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o LZ77C.o SlidingWindow.o LZ77D.o
+	g++ -O3 -g -I $(aux) -I $(comp) LZ78C.o TrieNode.o LZ78D.o InputBuffer.o LZWC.o LZWD.o LZ77C.o SlidingWindow.o Compressor.o LZ77D.o -o comp $<
+
 

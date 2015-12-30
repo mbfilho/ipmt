@@ -3,6 +3,9 @@
 LZ77C::LZ77C(const char* fileName, int bufferSize, int lookAheadSize) : window(bufferSize + lookAheadSize), Compressor(fileName) {
 	WB = bufferSize;
 	WL = lookAheadSize;
+	
+	int tmp[] = {WB, WL};
+	fwrite(tmp, sizeof(int), 2, outputFile);
 
 	bitsWB  = (WB == 0 ? 1 : 32 - __builtin_clz(WB));
 	bitsWL  = (WL == 0 ? 1 : 32 - __builtin_clz(WL));
@@ -84,7 +87,7 @@ void LZ77C::emmitToken() {
 		| (ull(bestMatchingSize) << (bitsWB))
 		| (ull(ui(mismatchingChar)) << (bitsWB+bitsWL));
 	insertIntoBuffer(token, 8 + bitsWB + bitsWL);
-	printf("(%u, %u, %u) Size %d\n", bestMatchingPos, bestMatchingSize, mismatchingChar, 8+bitsWB+bitsWL);
+
 	window.slide(bestMatchingSize+1);
 }
 

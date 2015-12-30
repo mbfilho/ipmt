@@ -2,18 +2,19 @@
 
 LZ78C::LZ78C(const char* fileName): Compressor(fileName) {
 	currentNode = 0;
-	trie.push_back(TrieNode());//Root
+	dictionarySize = 1;
+	hashTable = new HashTable();
 }
 
 void LZ78C::writeByte(int arg) {
-	int nextNode = trie[currentNode].getChild(arg, trie);
+	int nextNode = hashTable->get(make_pair(currentNode, arg));
 	if(nextNode == -1) {
 		encodeAndWriteInt(currentNode); //O indice do termo no dicionário
 		encodeAndWriteInt(arg); //O índice do elemento 'mismatching'	
 	
 		//Insere o termo no dicionário	
-		trie.push_back(TrieNode());
-		trie[currentNode].addChild(arg, trie.size()-1, trie.back());
+		hashTable->put(make_pair(currentNode, arg), dictionarySize);
+		++dictionarySize;
 		
 		currentNode = 0;
 	} else 
@@ -24,7 +25,7 @@ void LZ78C::writeByte(int arg) {
 void LZ78C::flushAndClose() {
 	if(currentNode != 0) {
 		encodeAndWriteInt(currentNode);
-		encodeAndWriteInt(256);//Um caracter imaginário fora do alfabeto
+		encodeAndWriteInt(0); //Don't care
 	}
 
 	flush(true);

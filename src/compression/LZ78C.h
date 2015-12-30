@@ -1,7 +1,7 @@
 #ifndef LZ78C_H
 #define LZ78C_H
 #include "Compressor.h"
-#include "TrieNode.h"
+#include "HashTable.h"
 
 class LZ78C : public Compressor {
 public:
@@ -11,7 +11,8 @@ public:
 
 	void flushAndClose();
 private:
-	vector<TrieNode> trie;
+	HashTable* hashTable;
+	int dictionarySize;
 	int currentNode;
 };
 

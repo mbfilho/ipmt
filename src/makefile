@@ -34,15 +34,15 @@ HashTable.o: $(aux)/HashTable.cpp $(aux)/HashTable.h $(aux)/Global.h
 InputBuffer.o: $(aux)/InputBuffer.cpp $(aux)/InputBuffer.h $(aux)/Global.h
 	g++ -O3 -g $(aux)/InputBuffer.cpp -c $<
 
-LZ78C.o: $(comp)/LZ78C.cpp $(comp)/LZ78C.h $(comp)/Compressor.h $(aux)/Global.h $(aux)/TrieNode.h
-	g++ -O3 -g -I $(aux) $(comp)/LZ78C.cpp -c $<
+LZ78C.o: $(comp)/LZ78C.cpp $(comp)/LZ78C.h $(comp)/Compressor.h $(aux)/Global.h $(aux)/HashTable.h
+	g++ -O3 -g -I $(aux) -c $<
 LZ78D.o: $(comp)/LZ78D.cpp $(comp)/LZ78D.h $(comp)/Decompressor.h $(aux)/Global.h $(aux)/InputBuffer.h
 	g++ -O3 -g -I $(aux) $(comp)/LZ78D.cpp -c $<
 
 LZWC.o: $(comp)/LZWC.cpp $(comp)/LZWC.h $(comp)/Compressor.h $(aux)/Global.h $(aux)/HashTable.h
 	g++ -O3 -g -I $(aux) -c $<
 LZWD.o: $(comp)/LZWD.cpp $(comp)/LZWD.h $(comp)/Decompressor.h $(aux)/Global.h $(aux)/InputBuffer.h
-	g++ -O3 -g -I $(aux) $(comp)/LZWD.cpp -c $<
+	g++ -O3 -g -I $(aux)  -c $<
 
 SlidingWindow.o: $(aux)/SlidingWindow.cpp $(aux)/SlidingWindow.h 
 	g++ -O3 -g -c $<

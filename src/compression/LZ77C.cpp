@@ -6,10 +6,9 @@ LZ77C::LZ77C(const char* fileName, int bufferSize, int lookAheadSize) : Compress
 	
 	int tmp[] = {WB, WL};
 	fwrite(tmp, sizeof(int), 2, outputFile);
-
+	
 	bitsWB  = (WB == 0 ? 1 : 32 - __builtin_clz(WB));
 	bitsWL  = (WL == 0 ? 1 : 32 - __builtin_clz(WL));
-	
 	assert(bitsWB + bitsWL + 8 <= 64);
 
 	fail = new int[WL];
@@ -42,34 +41,52 @@ void LZ77C::buildFailFunction(uchar* ahead, int aSize) {
 }
 
 void LZ77C::emmitTokens(bool last) {
-	int size = windowSize;
-	uchar* curWindow = window;
-	while(size >= WB + WL){
-		int jump = emmitToken(curWindow, WB+WL);
-		size -= jump;
-		curWindow += jump;
+	Treap<CmpSet> tree(CmpSet(window, windowSize, WL)); 
+
+	if(windowSize > WB) {
+		for(int i = 0; i < WB; ++i)
+			tree.insert(i);
 	}
 
-	assert(size >= WB);
+	int offset = 0;
+	while(windowSize - offset >= WB + WL){
+		int jump = emmitToken(offset, tree);
+		for(int i = 0; i < jump; ++i) {
+			tree.remove(offset + i);
+			if(offset + WB + i < windowSize)
+				tree.insert(offset + WB + i);
+		}
+
+		offset += jump;
+	}
+
+	assert((windowSize - offset) >= WB);
 
 	if(last) {
-		while(size > WB) {
-			int jump = emmitToken(curWindow, size);
-			size -= jump;
-			curWindow += jump;
+		while(windowSize - offset > WB) {
+			int jump = emmitToken(offset, tree);
+			for(int i = 0; i < jump; ++i) {
+				tree.remove(offset + i);
+				if(offset + WB + i < windowSize)
+					tree.insert(offset + WB + i);
+			}
+			offset += jump;
 		}
 	} else {
-		for(int i = 0; i < size; ++i)
-			window[i] = curWindow[i];
-		windowSize = size;
+		for(int i = 0; i < (windowSize-offset); ++i)
+			window[i] = window[i+offset];
+		windowSize -= offset;
 	}
 }
 
-int LZ77C::emmitToken(uchar* curWindow, int wSize) {
+
+int LZ77C::emmitToken(int offset, Treap<CmpSet>& tree) {
+	int wSize = MIN(windowSize - offset, WB+WL);
+	uchar* curWindow = window + offset;
 	int wl = wSize - WB, k = -1;
 	buildFailFunction(curWindow + WB, wl);	
 
-	ui bestMatchingSize = 0, bestMatchingPos, mismatchingChar = 0;
+	ui bestMatchingSize = 0, bestMatchingPos = 0, mismatchingChar = 0;
 
 	/*Investigar melhor maneira de fazer isso.
 	* Garante que sempre vai haver um caractere de mismatching.
@@ -77,33 +94,29 @@ int LZ77C::emmitToken(uchar* curWindow, int wSize) {
 	*/
 	if(wl == WL) 
 		--wl;
-
-	for(int i = 0; i < wSize; ++i){
-		while(k != -1 && curWindow[WB + k+1] != curWindow[i])
-			k = fail[k];
-		if(curWindow[WB+k+1] == curWindow[i])
-			++k;
-
-		int matchingPos = i - k;
-		//O matching começou depois da janela de buffer
-		if(matchingPos >= WB)
-			break;
-		if((k+1) >= bestMatchingSize) {
-			bestMatchingSize = k + 1;
-			bestMatchingPos = i - k;
-			mismatchingChar = curWindow[WB+bestMatchingSize];
+	
+	TreapNode* root = tree.root;
+	while(root != NULL) {
+		int lcp = MIN(wl, tree.comparator.getLcp(WB+offset, root->key));
+		if(lcp >= bestMatchingSize) {
+			bestMatchingSize = lcp;
+			bestMatchingPos = root->key-offset;
+			mismatchingChar = window[offset+WB+lcp];
 		}
-		
-		//não dá pra fazer melhor que isso
-		if(k == wl - 1) 
-			break;
+		if(lcp == wl) break; //não dá para encontrar melhor
+
+		if(root->key + lcp >= windowSize || window[root->key+lcp] < window[WB+lcp+offset]) {
+			root = root -> right;
+		} else
+			root = root -> left;
 	}
+	if(!bestMatchingSize)
+		bestMatchingPos = 0;
 
 	ull token = 
 		bestMatchingPos
 		| (ull(bestMatchingSize) << (bitsWB))
 		| (ull(ui(mismatchingChar)) << (bitsWB+bitsWL));
-
 	insertIntoBuffer(token, 8 + bitsWB + bitsWL);
 	
 	return bestMatchingSize+1;

@@ -5,10 +5,11 @@ LZ77D::LZ77D(const char* filename) : input(filename){
 	WL = input.getBunchOfBits(32);
 	bitsWB  = (WB == 0 ? 1 : 32 - __builtin_clz(WB));
 	bitsWL  = (WL == 0 ? 1 : 32 - __builtin_clz(WL));
-	window = new SlidingWindow(WB+WL);
+	window = new uchar[MAX_WINDOW_SIZE];
 
+	windowOffset = availableBytes = 0;
 	for(int i = 0; i < WB; ++i)
-		window->append(0);
+		window[i] = 0;
 }
 
 void LZ77D::close() {
@@ -23,10 +24,17 @@ int LZ77D::readInt() {
 }
 
 int LZ77D::readByte() {
-	if(window->getSize() == WB) 
+	if(!availableBytes) {
+		if(windowOffset + WB + WL >= MAX_WINDOW_SIZE) {
+			for(int i = 0; i < WB; ++i) {
+				window[i] = window[windowOffset+i];
+			}
+			windowOffset = 0;
+		}
 		readToken();
-	int byte = window->get(WB);
-	window->slide(1);
+	}
+	int byte = window[windowOffset+WB];
+	++windowOffset, --availableBytes;
 
 	return byte;
 }
@@ -38,9 +46,10 @@ void LZ77D::readToken() {
 	mismatching = input.getBunchOfBits(8);
 		
 	for(int i = 0; i < size; ++i) {
-		int newByte = window->get(i+pos);
-		window->append(newByte);
+		int newByte = window[i+pos+windowOffset];
+		window[windowOffset+WB+i] = newByte;
 	}
 
-	window->append(mismatching);
+	window[windowOffset+WB+size] = mismatching;
+	availableBytes = size + 1;
 }

@@ -2,8 +2,8 @@
 #define LZ77D_H
 #include "InputBuffer.h"
 #include "Decompressor.h"
-#include "SlidingWindow.h"
 
+#define MAX_WINDOW_SIZE (1<<20)
 class LZ77D : public Decompressor {
 public:
 	LZ77D(const char* filename);	
@@ -16,8 +16,11 @@ private:
 
 	int WB, WL;
 	int bitsWL, bitsWB;
-	
-	SlidingWindow* window;	
+
+	uchar* window;
+	int windowOffset;	
+
+	int availableBytes;
 
 	void readToken();
 };

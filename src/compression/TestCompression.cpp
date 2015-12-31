@@ -35,7 +35,7 @@ void testCompression(const char *input, const char *output) {
 
 void testCompressionAndDecompression() {
 	LZ77C comp("comprimido", 8, 4);
-	int qtd = 1000;
+	int qtd = 10000;
 	for(int i = 0; i < qtd; ++i)
 		comp.writeInt(i);
 

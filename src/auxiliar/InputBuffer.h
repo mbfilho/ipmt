@@ -17,7 +17,6 @@ private:
 	int curPos;
 
 	ull nextBit;
-	int bitPos;
 
 	FILE* file;
 	const char* fileName;

@@ -23,7 +23,6 @@ int InputBuffer::getNextBit() {
 	int bit = 0;
 	if(buffer[curPos] & nextBit) bit = 1;
 	nextBit <<= 1;
-	++bitPos;
 
 	return bit;
 }
@@ -44,7 +43,6 @@ void InputBuffer::fillIfEmpty() {
 		}
 
 		nextBit = 1;
-		bitPos = 0;
 	}
 }
 

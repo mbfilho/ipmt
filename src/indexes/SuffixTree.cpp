@@ -9,6 +9,7 @@ SuffixTree::SuffixTree(const char* dotFileName) {
 
 void SuffixTree::compress(Compressor* compressor) {
 	//Escreve o tamanho do texto e o texto
+	printf(">>>> %lu\n", nodes.size());
 	compressor->writeInt(n);
 	compressor->writeText(text, n);
 
@@ -17,6 +18,7 @@ void SuffixTree::compress(Compressor* compressor) {
 
 	//Escreve os nós em si
 	for(int i = 0; i < nodes.size(); ++i){
+		if(i%10000 == 0) printf("\r%lf%% completo", 100*double(i)/nodes.size());
 		SuffixTreeNode& cur = nodes[i];
 		int fieldsToSave[] = {
 			cur.start,
@@ -27,6 +29,7 @@ void SuffixTree::compress(Compressor* compressor) {
 		};
 		compressor->writeArrayOfInts(fieldsToSave, 5);
 	}
+	printf("\n");
 }
 
 void SuffixTree::decompress(Decompressor* decompressor) {

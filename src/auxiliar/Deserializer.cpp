@@ -1,9 +1,6 @@
 #include "Deserializer.h"
 
 Deserializer::Deserializer(Decompressor* decompressor) : decompressor(decompressor) {
-	lastToken = 0;
-	lastTokenSize = 0;
-
 	curByte = 0;
 	availableBits = 0;
 }
@@ -18,6 +15,7 @@ int Deserializer::deserializeInt() {
 }
 
 char Deserializer::deserializeChar() {
+	return char(decompressor->readByte());
 	return char(readBunchOfBits(8));
 }
 
@@ -35,7 +33,11 @@ bool Deserializer::readBit() {
 
 int Deserializer::readBunchOfBits(int howMany) {
 	int at = 0, left = howMany;
-
+	
+	for(int i = 0; i < howMany; ++i){
+		at |= (readBit() << i);
+	}
+	return at;
 	while(left) {
 		//ler do byte atual
 		int lidos = MIN(left, availableBits);

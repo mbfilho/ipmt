@@ -28,8 +28,8 @@ Index* loadIndex(IpmtConfiguration& config) {
 
 	CompressionAlgorithm alg;
 	IndexDataStructure index;
-	assert(1 == fread(&index, sizeof(index), 1, indexFile));
-	assert(1 == fread(&alg, sizeof(alg), 1, indexFile));
+	assert(1 == fread(&index, sizeof(IndexDataStructure), 1, indexFile));
+	assert(1 == fread(&alg, sizeof(CompressionAlgorithm), 1, indexFile));
 
 	if(alg == LZ77) {
 		int wb, wl;
@@ -48,6 +48,7 @@ Index* loadIndex(IpmtConfiguration& config) {
 		printf("Algoritmo de compressão: nenhum.\n");
 	}
 	
+	
 	if(index == SUFFIX_ARRAY) {
 		loaded = new SuffixArray();
 		printf("Tipo do índice armazenado: Array de Sufixos.\n");
@@ -55,6 +56,8 @@ Index* loadIndex(IpmtConfiguration& config) {
 		loaded = new SuffixTree(NULL);
 		printf("Tipo do índice armazenado: Árvore de Sufixos.\n");
 	}	
+
+	assert(loaded != NULL); assert(decompressor != NULL);
 	Deserializer* deserializer = new Deserializer(decompressor);
 	loaded->deserialize(deserializer);
 	
@@ -76,9 +79,8 @@ void storeIndex(IpmtConfiguration& config, Index* index) {
 		printf("Não foi possível abrir o arquivo \'%s\' para escrita\n", indexFileName.c_str());
 		assert(output);
 	}
-	
-	fwrite(&indexType, sizeof(index), 1, output);
-	fwrite(&alg, sizeof(alg), 1, output);
+	fwrite(&indexType, sizeof(CompressionAlgorithm), 1, output);
+	fwrite(&alg, sizeof(IndexDataStructure), 1, output);
 	
 	if(alg == LZ77) {
 		int args[] = {config.wb, config.wl};
@@ -108,6 +110,7 @@ void storeIndex(IpmtConfiguration& config, Index* index) {
 
 	Serializer* serializer = new Serializer(compressor);
 	index->serialize(serializer);
+	serializer->flushAndClose();
 	
 	delete compressor;
 	delete serializer;

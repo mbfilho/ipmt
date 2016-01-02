@@ -13,9 +13,6 @@ public:
 private:
 	Decompressor* decompressor;	
 		
-	ull lastToken;
-	int lastTokenSize;
-
 	Byte curByte;
 	int availableBits;
 

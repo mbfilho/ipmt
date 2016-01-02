@@ -10,20 +10,24 @@ SuffixTree::SuffixTree(const char* dotFileName) {
 void SuffixTree::serialize(Serializer* serializer) {
 	//Escreve o tamanho do texto e o texto
 	serializer->serializeInt(n);
+	printf("|T| = %lu\n", n);
 	for(int i = 0; i < n; ++i)
 		serializer->serializeChar(text[i]);
 
 	//Escreve a quantidade de nós
 	serializer->serializeInt(nodes.size());
 
+	printf("Qtd De nos %d\n", int(nodes.size()));
 	//Escreve os nós em si
 	for(int i = 0; i < nodes.size(); ++i){
 		if(i%10000 == 0) printf("\r%lf%% completo", 100*double(i)/nodes.size());
 		SuffixTreeNode& cur = nodes[i];
 		serializer->serializeInt(cur.start);
 		serializer->serializeInt(cur.end);
-		serializer->serializeInt(cur.leaves);
+		//serializer->serializeInt(cur.leaves);
+		if(cur.firstChild == -1) cur.firstChild = nodes.size();
 		serializer->serializeInt(cur.firstChild);
+		if(cur.sibling == -1) cur.sibling = nodes.size();
 		serializer->serializeInt(cur.sibling);
 	}
 	printf("\n");
@@ -31,6 +35,7 @@ void SuffixTree::serialize(Serializer* serializer) {
 
 void SuffixTree::deserialize(Deserializer* deserializer) {
 	n = deserializer->deserializeInt();
+	printf("rec|T| = %lu\n",n);
 	char* tmp = new char[n];
 	for(int i = 0; i < n; ++i)
 		tmp[i] = deserializer->deserializeChar();
@@ -44,7 +49,7 @@ void SuffixTree::deserialize(Deserializer* deserializer) {
 		SuffixTreeNode& cur = nodes[i];
 		cur.start = deserializer->deserializeInt();
 		cur.end = deserializer->deserializeInt();
-		cur.leaves = deserializer->deserializeInt();
+		//cur.leaves = deserializer->deserializeInt();
 		cur.firstChild = deserializer->deserializeInt();
 		cur.sibling = deserializer->deserializeInt();
 	}

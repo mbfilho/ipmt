@@ -1,6 +1,8 @@
 #include "Serializer.h"
 
 Serializer::Serializer(Compressor* compressor): compressor(compressor) {
+	lastToken = 0;
+	lastTokenSize = 0;
 }
 
 void Serializer::serializeInt(int value) {
@@ -32,6 +34,8 @@ void Serializer::writeToCompressor(ull token, int tokenSize) {
 	int filledBits = MIN(64 - lastTokenSize, tokenSize);
 	token >>= filledBits;
 	tokenSize -= filledBits;
+	lastTokenSize += filledBits;
+
 	if(lastTokenSize == 64) {
 		compressor->writeInt(int(lastToken));
 		lastToken >>= 32;
@@ -48,9 +52,13 @@ void Serializer::writeToCompressor(ull token, int tokenSize) {
 
 void Serializer::flushAndClose() {
 	if(lastTokenSize) {
+		printf("%llu\n", lastToken);
+		
 		compressor->writeInt(int(lastToken));
 		lastToken >>= 32;
 		compressor->writeInt(int(lastToken));
+
+
 	}
 	compressor->flushAndClose();
 }

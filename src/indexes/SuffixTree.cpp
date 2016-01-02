@@ -7,27 +7,24 @@ SuffixTree::SuffixTree(const char* dotFileName) {
 		dotFile = fopen(dotFileName, "w");
 }
 
-void SuffixTree::compress(Compressor* compressor) {
+void SuffixTree::serialize(Serializer* serializer) {
 	//Escreve o tamanho do texto e o texto
-	printf(">>>> %lu\n", nodes.size());
-	compressor->writeInt(n);
-	compressor->writeText(text, n);
+	for(int i = 0; i < n; ++i)
+		serializer->serializeChar(text[i]);
+	serializer->serializeChar(0);
 
 	//Escreve a quantidade de nós
-	compressor->writeInt(nodes.size());
+	serializer->serializeInt(nodes.size());
 
 	//Escreve os nós em si
 	for(int i = 0; i < nodes.size(); ++i){
 		if(i%10000 == 0) printf("\r%lf%% completo", 100*double(i)/nodes.size());
 		SuffixTreeNode& cur = nodes[i];
-		int fieldsToSave[] = {
-			cur.start,
-			cur.end,
-			cur.leaves,
-			cur.firstChild,
-			cur.sibling
-		};
-		compressor->writeArrayOfInts(fieldsToSave, 5);
+		serializer->serializeInt(cur.start);
+		serializer->serializeInt(cur.end);
+		serializer->serializeInt(cur.leaves);
+		serializer->serializeInt(cur.firstChild);
+		serializer->serializeInt(cur.sibling);
 	}
 	printf("\n");
 }

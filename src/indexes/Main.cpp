@@ -45,14 +45,11 @@ int main(int argc, char* argv[]){
 			buffer[read] = 0;
 
 			index->build(buffer, read);
-			char indexFileName[100];
-			strcpy(indexFileName, config.textFileName.c_str());
-			strcat(indexFileName, ".idx");
-			printf("Index gerado. Comprimindo ...\n");
-//			Compressor* compressor = new LZ77C(indexFileName, 4096, 16);
-			Compressor* compressor = new LZWC(indexFileName);
-			index->compress(compressor);
-			compressor->flushAndClose();
+
+			Serializer* serializer = new Serializer(config);
+			index->serialize(serializer);
+			serializer->flushAndClose();
+			delete serializer;
 		}else printf("O arquivo de texto \'%s\' não pôde ser aberto para leitura\n", config.textFileName.c_str());
 	} else {
 		Decompressor* decompressor = new LZ77D(config.indexFileName.c_str());	

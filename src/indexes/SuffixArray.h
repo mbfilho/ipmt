@@ -1,5 +1,5 @@
-#ifndef SUFFIX_ARRAY
-#define SUFFIX_ARRAY
+#ifndef SUFFIX_ARRAY_H
+#define SUFFIX_ARRAY_H
 
 #include "Index.h"
 #include "Global.h"
@@ -12,7 +12,7 @@ public:
 	void build(const char* text, size_t n);
 	void findMatchings(const char* pat, size_t m, bool countOnly); 
 
-	void compress(Compressor* compressor); 
+	void serialize(Serializer* serializer); 
 	void decompress(Decompressor* decompressor); 
 
 	//Existem apenas para rodar os testes

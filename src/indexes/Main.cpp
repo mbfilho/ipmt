@@ -1,6 +1,7 @@
 #include "SuffixArray.h"
 #include "SuffixArray2.h"
 #include "SuffixTree.h"
+#include "IpmtConfiguration.h"
 #include "OptionsParsing.cpp"
 #include <cstring>
 #include "DummyCompressor.h"
@@ -11,7 +12,6 @@
 #include "LZWC.h"
 #include "LZ77C.h"
 #include "LZ77D.h"
-
 #define SIZE (1<<27)
 
 char buffer[SIZE];

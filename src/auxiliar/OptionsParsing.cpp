@@ -11,12 +11,16 @@ IpmtConfiguration config;
 
 #define COMPRESSION 1
 #define INDEXTYPE 2
+#define LZ77_BUFFER 3
+#define LZ77_LOOKA 4
 struct option options[] =
 {
 	{"count", no_argument, &config.countFlag, 'c'},
 	{"help", no_argument, &config.helpFlag, 'h'},
 	{"compression", required_argument, 0, COMPRESSION},
 	{"indextype", required_argument, 0, INDEXTYPE},
+	{"wb", required_argument, 0, LZ77_BUFFER},
+	{"wl", required_argument, 0, LZ77_LOOKA},
 	{"pattern", required_argument, 0, 'p'},
 	{0, 0, 0, 0}
 };
@@ -32,7 +36,11 @@ IpmtConfiguration& parseOptions(int argc, char* argv[]) {
 	
 	    if(c == -1) 
 	    	break;
-		if(c == COMPRESSION) {
+		if(c == LZ77_BUFFER) {
+			config.wb = atoi(optarg);
+		} else if(c == LZ77_LOOKA) {
+			config.wl = atoi(optarg);
+		} else if(c == COMPRESSION) {
 			config.compression = optarg;	
 		} else if(c == INDEXTYPE) {
 			config.indexType = optarg;

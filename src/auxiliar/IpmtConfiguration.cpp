@@ -69,7 +69,10 @@ bool IpmtConfiguration::validateConfig(){
 			printf("Indice não suportado: \'%s\'. Você quis dizer \'suffixtree\' ou \'suffixarray\'?\n", indexType.c_str());
 			valid = false;
 		}
-		printf("TODO: validar compressão\n");
+	
+		if(compression != "lz77" && compression != "lz78" && compression != "lzw" && compression != "none") {
+			printf("Algoritmo de compressão não suportado: \'%s\'. Você quis dizer \'lz77\', \'lz78\', \'lzw\' ou \'none\'?", compression.c_str());
+		}
 
 		if(textFileName == "") {
 			printf("No modo \'index\' é preciso informar um arquivo de texto a partir do qual o índice será construído.\n");

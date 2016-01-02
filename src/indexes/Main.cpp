@@ -36,19 +36,25 @@ Index* loadIndex(IpmtConfiguration& config) {
 		assert(1 == fread(&wb, sizeof(int), 1, indexFile));	
 		assert(1 == fread(&wl, sizeof(int), 1, indexFile));	
 		decompressor = new LZ77D(indexFile, wb, wl);	
+		printf("Algoritmo de compressão: LZ77, com buffer %d e lookahead %d.\n", wb, wl);
 	} else if(alg == LZ78) {
 		decompressor = new LZ78D(indexFile);
+		printf("Algoritmo de compressão: LZ78.\n");
 	} else if(alg == LZW) {
 		decompressor = new LZWD(indexFile);
+		printf("Algoritmo de compressão: LZW.\n");
 	} else if(alg == NONE) {
 		decompressor = new DummyDecompressor(indexFile);
+		printf("Algoritmo de compressão: nenhum.\n");
 	}
 	
 	if(index == SUFFIX_ARRAY) {
 		loaded = new SuffixArray();
+		printf("Tipo do índice armazenado: Array de Sufixos.\n");
 	} else if(index == SUFFIX_TREE) {
 		loaded = new SuffixTree(NULL);
-	}
+		printf("Tipo do índice armazenado: Árvore de Sufixos.\n");
+	}	
 	Deserializer* deserializer = new Deserializer(decompressor);
 	loaded->deserialize(deserializer);
 	
@@ -83,15 +89,19 @@ void storeIndex(IpmtConfiguration& config, Index* index) {
 	switch(alg) {
 		case LZ77:
 			compressor = new LZ77C(output, config.wb, config.wl);
+			printf("Comprimindo índice com o algoritmo LZ77.\n");
 			break;
 		case LZ78:
 			compressor = new LZ78C(output);
+			printf("Comprimindo índice com o algoritmo LZ78.\n");
 			break;
 		case LZW:
 			compressor = new LZWC(output);
+			printf("Comprimindo índice com o algoritmo LZW.\n");
 			break;
 		case NONE:
 			compressor = new DummyCompressor(output);
+			printf("Salvando o índice descomprimido.\n");
 			break;
 	}
 	assert(compressor != NULL);
@@ -117,16 +127,17 @@ int main(int argc, char* argv[]){
 
 	Index* index = NULL;
 	if(config.mode == "index") {
-		if(config.indexType == "suffixtree") {
-			printf("Usando suffixtree\n");
+		IndexDataStructure indexType = config.getIndexDataStructure();
+		if(indexType == SUFFIX_TREE) {
+			printf("Usando Árvore de Sufixos.\n");
 			index = new SuffixTree(NULL);
-		} else if(config.indexType == "suffixarray") {
+		} else if(indexType == SUFFIX_ARRAY) {
 			index = new SuffixArray();
-			printf("Usando suffixarray\n");
+			printf("Usando Array de Sufixos.\n");
 		}
 		if(FILE* in = fopen(config.textFileName.c_str(), "r")){
 			size_t read = fread(buffer, sizeof(char), SIZE-2, in);
-			if(config.indexType == "suffixtree")
+			if(indexType == SUFFIX_TREE)
 				buffer[read++] = '$';
 			buffer[read] = 0;
 

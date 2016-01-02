@@ -1,41 +1,6 @@
 #include "Serializer.h"
 
-Serializer::Serializer(IpmtConfiguration& config) {
-	CompressionAlgorithm alg = config.getCompressionAlgorithm();
-	IndexDataStructure index = config.getIndexDataStructure();
-
-	string indexFileName = config.textFileName + ".idx";
-	FILE* output = fopen(indexFileName.c_str(), "wb");
-	if(!output) {
-		printf("Não foi possível abrir o arquivo \'%s\' para escrita\n", indexFileName.c_str());
-		assert(output);
-	}
-	
-	fwrite(&index, sizeof(index), 1, output);
-	fwrite(&alg, sizeof(alg), 1, output);
-	
-	if(alg == LZ77) {
-		int args[] = {config.wb, config.wl};
-		fwrite(args, sizeof(int), 2, output);
-	}
-
-	compressor = NULL;	
-	switch(alg) {
-		case LZ77:
-			compressor = new LZ77C(output, config.wb, config.wl);
-			break;
-		case LZ78:
-			compressor = new LZ78C(output);
-			break;
-		case LZW:
-			compressor = new LZWC(output);
-			break;
-		case NONE:
-			compressor = new DummyCompressor(output);
-			break;
-	}
-
-	assert(compressor != NULL);
+Serializer::Serializer(Compressor* compressor): compressor(compressor) {
 }
 
 void Serializer::serializeInt(int value) {

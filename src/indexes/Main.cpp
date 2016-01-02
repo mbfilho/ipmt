@@ -60,6 +60,49 @@ Index* loadIndex(IpmtConfiguration& config) {
 	return loaded;
 }
 
+void storeIndex(IpmtConfiguration& config, Index* index) {
+	CompressionAlgorithm alg = config.getCompressionAlgorithm();
+	IndexDataStructure indexType = config.getIndexDataStructure();
+	
+	string indexFileName = config.textFileName + ".idx";
+	FILE* output = fopen(indexFileName.c_str(), "wb");
+	if(!output) {
+		printf("Não foi possível abrir o arquivo \'%s\' para escrita\n", indexFileName.c_str());
+		assert(output);
+	}
+	
+	fwrite(&indexType, sizeof(index), 1, output);
+	fwrite(&alg, sizeof(alg), 1, output);
+	
+	if(alg == LZ77) {
+		int args[] = {config.wb, config.wl};
+		fwrite(args, sizeof(int), 2, output);
+	}
+
+	Compressor* compressor = NULL;	
+	switch(alg) {
+		case LZ77:
+			compressor = new LZ77C(output, config.wb, config.wl);
+			break;
+		case LZ78:
+			compressor = new LZ78C(output);
+			break;
+		case LZW:
+			compressor = new LZWC(output);
+			break;
+		case NONE:
+			compressor = new DummyCompressor(output);
+			break;
+	}
+	assert(compressor != NULL);
+
+	Serializer* serializer = new Serializer(compressor);
+	index->serialize(serializer);
+	
+	delete compressor;
+	delete serializer;
+}
+
 int main(int argc, char* argv[]){
 	IpmtConfiguration& config = parseOptions(argc, argv);
 	if(config.helpFlag) {
@@ -88,11 +131,8 @@ int main(int argc, char* argv[]){
 			buffer[read] = 0;
 
 			index->build(buffer, read);
+			storeIndex(config, index);
 
-			Serializer* serializer = new Serializer(config);
-			index->serialize(serializer);
-			serializer->flushAndClose();
-			delete serializer;
 		}else printf("O arquivo de texto \'%s\' não pôde ser aberto para leitura\n", config.textFileName.c_str());
 	} else {
 		index = loadIndex(config);

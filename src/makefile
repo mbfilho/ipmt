@@ -11,7 +11,7 @@ Compressor.o: $(comp)/Compressor.cpp $(comp)/Compressor.h $(aux)/Global.h
 IpmtConfiguration.o: $(aux)/IpmtConfiguration.cpp $(aux)/IpmtConfiguration.h $(aux)/Global.h
 	g++ -O3 -g -I $(aux) -c $<
 
-Serializer.o: $(aux)/Serializer.cpp $(aux)/Serializer.h $(comp)/Compressor.h $(comp)/LZ77C.h $(comp)/LZ77C.h $(comp)/LZ78C.h $(comp)/LZWC.h $(aux)/IpmtConfiguration.h
+Serializer.o: $(aux)/Serializer.cpp $(aux)/Serializer.h $(comp)/Compressor.h 
 	g++ -O3 -g -I $(aux) -I $(comp) -c $<
 Deserializer.o: $(aux)/Deserializer.cpp $(aux)/Deserializer.h $(comp)/Decompressor.h 
 	g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) -c $<

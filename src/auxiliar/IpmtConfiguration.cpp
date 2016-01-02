@@ -2,8 +2,27 @@
 
 IpmtConfiguration::IpmtConfiguration() {
 	indexType = "suffixtree";
-	compression="dummy";
+	compression="none";
 	countFlag = 0;
+	wb = 1024;
+	wl = 16;
+}
+
+CompressionAlgorithm IpmtConfiguration::getCompressionAlgorithm() {
+	if(compression == "none")
+		return CompressionAlgorithm::NONE;
+	else if(compression == "lz77")
+		return CompressionAlgorithm::LZ77;
+	else if(compression == "lz78")
+		return CompressionAlgorithm::LZ78;
+	else
+		return CompressionAlgorithm::LZW;
+}
+
+IndexDataStructure IpmtConfiguration::getIndexDataStructure() {
+	if(indexType == "suffixtree")
+		return IndexDataStructure::SUFFIX_TREE;
+	return IndexDataStructure::SUFFIX_ARRAY;
 }
 
 bool IpmtConfiguration::validateConfig(){

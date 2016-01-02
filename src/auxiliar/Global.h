@@ -32,6 +32,14 @@ typedef unsigned int ui;
 typedef unsigned char uchar;
 typedef uchar Byte;
 
+enum CompressionAlgorithm {
+	LZ77, LZ78, LZW, NONE
+};
+
+enum IndexDataStructure {
+	SUFFIX_ARRAY, SUFFIX_TREE
+};
+
 #define MIN(a,b) ((a)<(b))?(a):(b)
 #define MAX(a,b) (((a) < (b))?(b):(a))
 #define SIZE_IN_BITS(arg) ((arg) == 0 ? 1 : 32 - __builtin_clz(arg))

@@ -22,6 +22,12 @@ public:
 	IpmtConfiguration(); 
 
 	bool validateConfig(); 
+	
+	//Tamanho das janelas de buffer e lookAhead do LZ77
+	int wb, wl; 
 
+	CompressionAlgorithm getCompressionAlgorithm();
+
+	IndexDataStructure getIndexDataStructure();
 };
 #endif

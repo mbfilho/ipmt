@@ -1,5 +1,4 @@
 #include "SuffixArray.h"
-#include "SuffixArray2.h"
 #include "SuffixTree.h"
 #include "IpmtConfiguration.h"
 #include "OptionsParsing.cpp"

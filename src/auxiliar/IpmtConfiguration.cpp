@@ -71,7 +71,8 @@ bool IpmtConfiguration::validateConfig(){
 		}
 	
 		if(compression != "lz77" && compression != "lz78" && compression != "lzw" && compression != "none") {
-			printf("Algoritmo de compressão não suportado: \'%s\'. Você quis dizer \'lz77\', \'lz78\', \'lzw\' ou \'none\'?", compression.c_str());
+			printf("Algoritmo de compressão não suportado: \'%s\'. Você quis dizer \'lz77\', \'lz78\', \'lzw\' ou \'none\'?\n", compression.c_str());
+			valid = false;
 		}
 
 		if(textFileName == "") {

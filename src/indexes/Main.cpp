@@ -89,7 +89,7 @@ void storeIndex(IpmtConfiguration& config, Index* index) {
 	switch(alg) {
 		case LZ77:
 			compressor = new LZ77C(output, config.wb, config.wl);
-			printf("Comprimindo índice com o algoritmo LZ77.\n");
+			printf("Comprimindo índice com o algoritmo LZ77, com buffer = %d e lookahead %d.\n", config.wb, config.wl);
 			break;
 		case LZ78:
 			compressor = new LZ78C(output);

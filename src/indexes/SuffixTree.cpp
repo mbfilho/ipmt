@@ -7,51 +7,56 @@ SuffixTree::SuffixTree(const char* dotFileName) {
 		dotFile = fopen(dotFileName, "w");
 }
 
-void SuffixTree::serialize(Serializer* serializer) {
+void SuffixTree::serialize(Compressor* compressor) {
 	//Escreve o tamanho do texto e o texto
-	serializer->serializeInt(n);
+	compressor->writeInt(n);
 	printf("|T| = %lu\n", n);
 	for(int i = 0; i < n; ++i)
-		serializer->serializeChar(text[i]);
+		compressor->writeByte(text[i]);
 
 	//Escreve a quantidade de nós
-	serializer->serializeInt(nodes.size());
+	compressor->writeInt(nodes.size());
 
 	printf("Qtd De nos %d\n", int(nodes.size()));
 	//Escreve os nós em si
 	for(int i = 0; i < nodes.size(); ++i){
 		if(i%10000 == 0) printf("\r%lf%% completo", 100*double(i)/nodes.size());
 		SuffixTreeNode& cur = nodes[i];
-		serializer->serializeInt(cur.start);
-		serializer->serializeInt(cur.end);
-		//serializer->serializeInt(cur.leaves);
+		compressor->writeInt(cur.start);
+		compressor->writeInt(cur.end);
+		//compressor->writeInt(cur.leaves);
 		if(cur.firstChild == -1) cur.firstChild = nodes.size();
-		serializer->serializeInt(cur.firstChild);
+		compressor->writeInt(cur.firstChild);
 		if(cur.sibling == -1) cur.sibling = nodes.size();
-		serializer->serializeInt(cur.sibling);
+		compressor->writeInt(cur.sibling);
 	}
 	printf("\n");
 }
 
-void SuffixTree::deserialize(Deserializer* deserializer) {
-	n = deserializer->deserializeInt();
+void SuffixTree::deserialize(Decompressor* decompressor) {
+	n = decompressor->readInt();
 	printf("rec|T| = %lu\n",n);
 	char* tmp = new char[n];
 	for(int i = 0; i < n; ++i)
-		tmp[i] = deserializer->deserializeChar();
+		tmp[i] = decompressor->readByte();
 	tmp[n-1] = 0;
 	text = tmp;
 
 	//Atenção para a leitura dos nós!
 	//A ordem tem que ser a mesma da escrita!
-	nodes.resize(deserializer->deserializeInt());
+	int h = decompressor->readInt();
+	nodes.resize(h);
 	for(int i = 0; i < nodes.size(); ++i){
 		SuffixTreeNode& cur = nodes[i];
-		cur.start = deserializer->deserializeInt();
-		cur.end = deserializer->deserializeInt();
-		//cur.leaves = deserializer->deserializeInt();
-		cur.firstChild = deserializer->deserializeInt();
-		cur.sibling = deserializer->deserializeInt();
+		cur.start = decompressor->readInt();
+		cur.end = decompressor->readInt();
+		//cur.leaves = decompressor->readInt();
+		cur.firstChild = decompressor->readInt();
+		if(cur.firstChild == h)
+			cur.firstChild = -1;
+		cur.sibling = decompressor->readInt();
+		if(cur.sibling == h)
+			cur.sibling = -1;
 	}
 }
  

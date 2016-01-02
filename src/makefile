@@ -2,8 +2,8 @@ aux = auxiliar
 idx = indexes
 comp = compression
 
-all: $(idx)/Main.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o HashTable.o LZ77C.o LZ77D.o IpmtConfiguration.o Serializer.o Deserializer.o
-	g++ -O3 -g -I $(aux) -I $(comp) SuffixArray.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o HashTable.o LZ77C.o LZ77D.o Compressor.o IpmtConfiguration.o Serializer.o Deserializer.o $<
+all: $(idx)/Main.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o HashTable.o LZ77C.o LZ77D.o IpmtConfiguration.o 
+	g++ -O3 -g -I $(aux) -I $(comp) SuffixArray.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o HashTable.o LZ77C.o LZ77D.o Compressor.o IpmtConfiguration.o  $<
 
 Compressor.o: $(comp)/Compressor.cpp $(comp)/Compressor.h $(aux)/Global.h
 	g++ -O3 -g -I $(aux) -c $<
@@ -11,17 +11,12 @@ Compressor.o: $(comp)/Compressor.cpp $(comp)/Compressor.h $(aux)/Global.h
 IpmtConfiguration.o: $(aux)/IpmtConfiguration.cpp $(aux)/IpmtConfiguration.h $(aux)/Global.h
 	g++ -O3 -g -I $(aux) -c $<
 
-Serializer.o: $(aux)/Serializer.cpp $(aux)/Serializer.h $(comp)/Compressor.h 
-	g++ -O3 -g -I $(aux) -I $(comp) -c $<
-Deserializer.o: $(aux)/Deserializer.cpp $(aux)/Deserializer.h $(comp)/Decompressor.h 
-	g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) -c $<
-
-SuffixArray.o: $(idx)/SuffixArray.cpp $(idx)/SuffixArray.h $(idx)/Index.h $(aux)/Global.h $(aux)/Printer.h $(aux)/Serializer.h $(aux)/Deserializer.h
+SuffixArray.o: $(idx)/SuffixArray.cpp $(idx)/SuffixArray.h $(idx)/Index.h $(aux)/Global.h $(aux)/Printer.h 
 	g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) -c $<
 
 SuffixTreeNode.o: $(aux)/SuffixTreeNode.cpp $(aux)/SuffixTreeNode.h 
 	g++ -O3  -g -c $< 
-SuffixTree.o: $(idx)/SuffixTree.cpp $(idx)/SuffixTree.h $(aux)/SuffixTreeNode.h $(aux)/Serializer.h $(aux)/Deserializer.h
+SuffixTree.o: $(idx)/SuffixTree.cpp $(idx)/SuffixTree.h $(aux)/SuffixTreeNode.h 
 	g++ -O3 -I $(aux) -I $(comp) -g -c $< 
 
 Printer.o: $(aux)/Printer.cpp $(aux)/Printer.h $(aux)/Global.h

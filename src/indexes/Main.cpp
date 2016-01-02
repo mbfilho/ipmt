@@ -48,7 +48,6 @@ Index* loadIndex(IpmtConfiguration& config) {
 		printf("Algoritmo de compressão: nenhum.\n");
 	}
 	
-	
 	if(index == SUFFIX_ARRAY) {
 		loaded = new SuffixArray();
 		printf("Tipo do índice armazenado: Array de Sufixos.\n");
@@ -58,12 +57,10 @@ Index* loadIndex(IpmtConfiguration& config) {
 	}	
 
 	assert(loaded != NULL); assert(decompressor != NULL);
-	Deserializer* deserializer = new Deserializer(decompressor);
-	loaded->deserialize(deserializer);
+	loaded->deserialize(decompressor);
 	
 	decompressor->close();
 	
-	delete deserializer;
 	delete decompressor; 
 
 	return loaded;
@@ -108,12 +105,10 @@ void storeIndex(IpmtConfiguration& config, Index* index) {
 	}
 	assert(compressor != NULL);
 
-	Serializer* serializer = new Serializer(compressor);
-	index->serialize(serializer);
-	serializer->flushAndClose();
-	
+	index->serialize(compressor);
+	compressor->flushAndClose();
+		
 	delete compressor;
-	delete serializer;
 }
 
 int main(int argc, char* argv[]){

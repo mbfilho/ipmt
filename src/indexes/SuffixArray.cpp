@@ -22,10 +22,10 @@ SuffixArray::~SuffixArray(){
 }
 
 
-void SuffixArray::serialize(Serializer* serialize) {
+void SuffixArray::serialize(Compressor* compressor) {
 }
 
-void SuffixArray::deserialize(Deserializer* deserializer) {
+void SuffixArray::deserialize(Decompressor* decompressor) {
 }
 
 

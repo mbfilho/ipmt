@@ -1,11 +1,8 @@
 #include "LZ77C.h"
 
-LZ77C::LZ77C(const char* fileName, int bufferSize, int lookAheadSize) : Compressor(fileName) {
+LZ77C::LZ77C(FILE* output, int bufferSize, int lookAheadSize) : Compressor(output) {
 	WB = bufferSize;
 	WL = lookAheadSize;
-	
-	int tmp[] = {WB, WL};
-	fwrite(tmp, sizeof(int), 2, outputFile);
 	
 	bitsWB  = (WB == 0 ? 1 : 32 - __builtin_clz(WB));
 	bitsWL  = (WL == 0 ? 1 : 32 - __builtin_clz(WL));

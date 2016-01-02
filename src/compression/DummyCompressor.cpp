@@ -1,6 +1,6 @@
 #include "DummyCompressor.h"
 
-DummyCompressor::DummyCompressor(const char* filename): Compressor(filename) {
+DummyCompressor::DummyCompressor(FILE* output): Compressor(output) {
 }
 
 void DummyCompressor::writeByte(int arg) {

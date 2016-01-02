@@ -1,6 +1,6 @@
 #include "LZ78C.h"
 
-LZ78C::LZ78C(const char* fileName): Compressor(fileName) {
+LZ78C::LZ78C(FILE* output): Compressor(output) {
 	currentNode = 0;
 	dictionarySize = 1;
 	hashTable = new HashTable();

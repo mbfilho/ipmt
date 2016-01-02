@@ -5,7 +5,7 @@
 
 class LZWC : public Compressor {
 public:
-	LZWC(const char* fileName);
+	LZWC(FILE* output);
 
 	void writeByte(int arg);
 

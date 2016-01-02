@@ -1,6 +1,6 @@
 #include "LZWC.h"
 
-LZWC::LZWC(const char* fileName):Compressor(fileName) {
+LZWC::LZWC(FILE* output):Compressor(output) {
 	currentNode = 0;
 	size = 1;
 	hashTable = new HashTable();

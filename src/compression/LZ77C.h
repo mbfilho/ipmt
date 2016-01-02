@@ -36,7 +36,7 @@ struct CmpSet {
 };
 class LZ77C : public Compressor {
 public:
-	LZ77C(const char* fileName, int bufferSize, int lookAheadSize);
+	LZ77C(FILE* output, int bufferSize, int lookAheadSize);
 	
 	void writeByte(int arg);	
 

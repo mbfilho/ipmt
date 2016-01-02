@@ -5,7 +5,7 @@
 
 class LZ78C : public Compressor {
 public:
-	LZ78C(const char* fileName);
+	LZ78C(FILE* output);
 
 	void writeByte(int arg);
 

@@ -1,13 +1,9 @@
 #include "Compressor.h"
 
 
-Compressor::Compressor(const char* fileName) {
-	outputFile = fopen(fileName, "wb");
-	if(!outputFile) {
-		printf("Não foi possível abrir o arquivo \'%s\' para escrita\n", fileName);
-		assert(outputFile);
-	}
-
+Compressor::Compressor(FILE* output) {
+	outputFile = output;
+	
 	lastTokenSize = 0;
 	lastToken = 0;
 }

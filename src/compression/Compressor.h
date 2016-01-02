@@ -10,7 +10,7 @@
 */
 class Compressor {
 public:
-	Compressor(const char* fileName);
+	Compressor(FILE* output);
 	/*
 	* Os algoritmos a seguir fornecem maneiras diferentes do usuário fazer a mesma coisa:
 	*	definir quais serão os próximos bits da stream de entrada. Note que, os métodos
@@ -24,12 +24,7 @@ public:
 	virtual void writeByte(int arg) = 0;
 	virtual void flushAndClose() = 0;
 
-	int lastTokenSize; //a quantidade de bits utilizados em token 
-	ull lastToken;
-
 protected:
-	FILE* outputFile;
-
 	/*
 	* Método utilizado pelos algoritmos LZW e LZ78
 	* Estratégia:
@@ -45,6 +40,12 @@ protected:
 	virtual void flush(bool force);
 	void insertIntoBuffer(ull token, int tokenSize);
 	void close();
+
+private:
+	FILE* outputFile;
+	
+	int lastTokenSize; //a quantidade de bits utilizados em token 
+	ull lastToken;
 };
 
 #endif

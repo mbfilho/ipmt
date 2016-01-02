@@ -2,7 +2,7 @@
 
 class DummyCompressor : public Compressor {
 public:
-	DummyCompressor(const char* filename);	
+	DummyCompressor(FILE* output);	
 	void writeByte(int arg);
 	void flushAndClose();
 };

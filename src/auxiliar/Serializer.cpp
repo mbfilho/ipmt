@@ -47,6 +47,11 @@ void Serializer::writeToCompressor(ull token, int tokenSize) {
 }
 
 void Serializer::flushAndClose() {
+	if(lastTokenSize) {
+		compressor->writeInt(int(lastToken));
+		lastToken >>= 32;
+		compressor->writeInt(int(lastToken));
+	}
 	compressor->flushAndClose();
 }
 

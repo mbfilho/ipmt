@@ -6,7 +6,7 @@
 #define MAX_WINDOW_SIZE (1<<20)
 class LZ77D : public Decompressor {
 public:
-	LZ77D(const char* filename);	
+	LZ77D(FILE* input, int wb, int wl);	
 	
 	void close(); 
 	int readInt();

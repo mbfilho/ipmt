@@ -1,9 +1,12 @@
+#ifndef DUMMY_DECOMPRESSOR_H
+#define DUMMY_DECOMPRESSOR_H
+
 #include "Decompressor.h"
 #include "Global.h"
 
 class DummyDecompressor : public Decompressor {
 public:
-	DummyDecompressor(const char* filename);
+	DummyDecompressor(FILE* inputFile);
 
 	int readInt();
 	int readByte();
@@ -12,3 +15,4 @@ public:
 private:
 	FILE* file;
 };
+#endif

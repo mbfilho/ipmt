@@ -9,9 +9,9 @@ SuffixTree::SuffixTree(const char* dotFileName) {
 
 void SuffixTree::serialize(Serializer* serializer) {
 	//Escreve o tamanho do texto e o texto
+	serializer->serializeInt(n);
 	for(int i = 0; i < n; ++i)
 		serializer->serializeChar(text[i]);
-	serializer->serializeChar(0);
 
 	//Escreve a quantidade de nós
 	serializer->serializeInt(nodes.size());
@@ -29,24 +29,24 @@ void SuffixTree::serialize(Serializer* serializer) {
 	printf("\n");
 }
 
-void SuffixTree::decompress(Decompressor* decompressor) {
-	n = decompressor->readInt();
+void SuffixTree::deserialize(Deserializer* deserializer) {
+	n = deserializer->deserializeInt();
 	char* tmp = new char[n];
 	for(int i = 0; i < n; ++i)
-		tmp[i] = decompressor->readByte();
+		tmp[i] = deserializer->deserializeChar();
 	tmp[n-1] = 0;
 	text = tmp;
 
 	//Atenção para a leitura dos nós!
 	//A ordem tem que ser a mesma da escrita!
-	nodes.resize(decompressor->readInt());
+	nodes.resize(deserializer->deserializeInt());
 	for(int i = 0; i < nodes.size(); ++i){
 		SuffixTreeNode& cur = nodes[i];
-		cur.start = decompressor->readInt();
-		cur.end = decompressor->readInt();
-		cur.leaves = decompressor->readInt();
-		cur.firstChild = decompressor->readInt();
-		cur.sibling = decompressor->readInt();
+		cur.start = deserializer->deserializeInt();
+		cur.end = deserializer->deserializeInt();
+		cur.leaves = deserializer->deserializeInt();
+		cur.firstChild = deserializer->deserializeInt();
+		cur.sibling = deserializer->deserializeInt();
 	}
 }
  

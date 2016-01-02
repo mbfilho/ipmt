@@ -25,7 +25,7 @@ SuffixArray::~SuffixArray(){
 void SuffixArray::serialize(Serializer* serialize) {
 }
 
-void SuffixArray::decompress(Decompressor* decompressor) {
+void SuffixArray::deserialize(Deserializer* deserializer) {
 }
 
 

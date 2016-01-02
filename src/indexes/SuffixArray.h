@@ -13,7 +13,7 @@ public:
 	void findMatchings(const char* pat, size_t m, bool countOnly); 
 
 	void serialize(Serializer* serializer); 
-	void decompress(Decompressor* decompressor); 
+	void deserialize(Deserializer* deserializer); 
 
 	//Existem apenas para rodar os testes
 	int* getArray();

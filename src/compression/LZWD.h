@@ -5,7 +5,7 @@
 
 class LZWD : public Decompressor {
 public:
-	LZWD(const char* fileName);
+	LZWD(FILE* inputFile);
 	
 	int readInt();
 	int readByte();

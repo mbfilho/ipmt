@@ -1,7 +1,7 @@
 #include "LZWD.h"
 
 
-LZWD::LZWD(const char* fileName): input(fileName) {
+LZWD::LZWD(FILE* inputFile): input(inputFile) {
 	trie.push_back(ReversedTrieNode(-1, 0));//a raiz
 	for(int i = 0; i < 256; ++i) {
 		trie.push_back(ReversedTrieNode(0, i));

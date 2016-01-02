@@ -1,7 +1,7 @@
 #include "LZ78D.h"
 
 
-LZ78D::LZ78D(const char* fileName): input(fileName) {
+LZ78D::LZ78D(FILE* inputFile): input(inputFile) {
 	trie.push_back(ReversedTrieNode(-1, 0));//a raiz
 }
 

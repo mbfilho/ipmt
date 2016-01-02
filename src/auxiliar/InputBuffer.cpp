@@ -1,11 +1,7 @@
 #include "InputBuffer.h"
 
-InputBuffer::InputBuffer(const char* fileName) : fileName(fileName) {
-	file = fopen(fileName, "rb");
-	if(!file) {
-		printf("[InputBuffer] Não foi possível abrir o arquivo \'%s\' para leitura.\n", fileName);
-		assert(file);
-	}
+InputBuffer::InputBuffer(FILE* inputFile) {
+	file = inputFile;
 
 	maxSize = 1024;
 	buffer = new ull[maxSize];
@@ -48,9 +44,6 @@ void InputBuffer::fillIfEmpty() {
 
 void InputBuffer::fillBuffer() {
 	int read = fread(buffer, sizeof(ull), maxSize, file);
-	if(!read){
-		printf("Erro de I/O: não foi possível ler mais bytes do arquivo \'%s\'\n", fileName);
-		assert(read); 
-	}
+	assert(read); 
 	size = read;
 }

@@ -10,19 +10,19 @@ IpmtConfiguration::IpmtConfiguration() {
 
 CompressionAlgorithm IpmtConfiguration::getCompressionAlgorithm() {
 	if(compression == "none")
-		return CompressionAlgorithm::NONE;
+		return NONE;
 	else if(compression == "lz77")
-		return CompressionAlgorithm::LZ77;
+		return LZ77;
 	else if(compression == "lz78")
-		return CompressionAlgorithm::LZ78;
+		return LZ78;
 	else
-		return CompressionAlgorithm::LZW;
+		return LZW;
 }
 
 IndexDataStructure IpmtConfiguration::getIndexDataStructure() {
 	if(indexType == "suffixtree")
-		return IndexDataStructure::SUFFIX_TREE;
-	return IndexDataStructure::SUFFIX_ARRAY;
+		return SUFFIX_TREE;
+	return SUFFIX_ARRAY;
 }
 
 bool IpmtConfiguration::validateConfig(){

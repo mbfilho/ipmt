@@ -1,8 +1,7 @@
 #include "LZ77D.h"
 
-LZ77D::LZ77D(const char* filename) : input(filename){
-	WB = input.getBunchOfBits(32);
-	WL = input.getBunchOfBits(32);
+LZ77D::LZ77D(FILE* inputFile, int wb, int wl) : input(inputFile){
+	WB = wb, WL = wl;
 	bitsWB  = (WB == 0 ? 1 : 32 - __builtin_clz(WB));
 	bitsWL  = (WL == 0 ? 1 : 32 - __builtin_clz(WL));
 	window = new uchar[MAX_WINDOW_SIZE];

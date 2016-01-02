@@ -1,10 +1,11 @@
-#ifndef SUFFIX_TREE
-#define SUFFIX_TREE
+#ifndef SUFFIX_TREE_H
+#define SUFFIX_TREE_H
 
 #include "Global.h"
 #include "SuffixTreeNode.h"
 #include "Index.h"
 #include "Printer.h"
+
 
 struct ImplicitPointer {
 	int v, st, end;
@@ -24,7 +25,7 @@ public:
 	void findMatchings(const char* pat, size_t m, bool countOnly); 
 
 	void serialize(Serializer* serializer); 
-	void decompress(Decompressor* decompressor); 
+	void deserialize(Deserializer* deserializer); 
 private:
 	//Os suffix links não ficam no nó para que não ocupem memória quando a árvore for carregada de um arquivo. Nessa ocasião eles não são necessários
 	vector<int> suffixLinks;

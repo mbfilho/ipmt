@@ -6,7 +6,7 @@
 
 class LZ78D : public Decompressor {
 public:
-	LZ78D(const char* fileName);
+	LZ78D(FILE* inputFile);
 	
 	int readInt();
 	int readByte();

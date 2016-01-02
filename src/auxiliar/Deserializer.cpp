@@ -1,6 +1,6 @@
 #include "Deserializer.h"
 
-Deserializer::Deserializer(IpmtConfiguration& config) {
+Deserializer::Deserializer(Decompressor* decompressor) : decompressor(decompressor) {
 	lastToken = 0;
 	lastTokenSize = 0;
 

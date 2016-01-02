@@ -4,7 +4,7 @@
 
 class InputBuffer {
 public:
-	InputBuffer(const char* fileName);
+	InputBuffer(FILE* inputFile);
 
 	int getNextBit();
 	ull getBunchOfBits(int howMany);
@@ -19,7 +19,6 @@ private:
 	ull nextBit;
 
 	FILE* file;
-	const char* fileName;
 
 	void fillBuffer(); 
 	void fillIfEmpty(); 

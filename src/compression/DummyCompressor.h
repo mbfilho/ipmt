@@ -1,3 +1,6 @@
+#ifndef DUMMY_COMPRESSOR_H
+#define DUMMY_COMPRESSOR_H
+
 #include "Compressor.h"
 
 class DummyCompressor : public Compressor {
@@ -7,3 +10,4 @@ public:
 	void flushAndClose();
 };
 
+#endif

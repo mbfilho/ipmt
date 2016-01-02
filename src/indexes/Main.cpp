@@ -16,6 +16,50 @@
 char buffer[SIZE];
 char line[10000];
 
+Index* loadIndex(IpmtConfiguration& config) {
+	Index* loaded = NULL;
+	Decompressor* decompressor = NULL;
+	FILE* indexFile = fopen(config.indexFileName.c_str(), "rb"); 	
+
+	if(!indexFile) {
+		printf("Não foi possível abrir o arquivo \'%s\' para leitura.\n", config.indexFileName.c_str());
+		assert(indexFile);
+	}
+
+	CompressionAlgorithm alg;
+	IndexDataStructure index;
+	assert(1 == fread(&index, sizeof(index), 1, indexFile));
+	assert(1 == fread(&alg, sizeof(alg), 1, indexFile));
+
+	if(alg == LZ77) {
+		int wb, wl;
+		assert(1 == fread(&wb, sizeof(int), 1, indexFile));	
+		assert(1 == fread(&wl, sizeof(int), 1, indexFile));	
+		decompressor = new LZ77D(indexFile, wb, wl);	
+	} else if(alg == LZ78) {
+		decompressor = new LZ78D(indexFile);
+	} else if(alg == LZW) {
+		decompressor = new LZWD(indexFile);
+	} else if(alg == NONE) {
+		decompressor = new DummyDecompressor(indexFile);
+	}
+	
+	if(index == SUFFIX_ARRAY) {
+		loaded = new SuffixArray();
+	} else if(index == SUFFIX_TREE) {
+		loaded = new SuffixTree(NULL);
+	}
+	Deserializer* deserializer = new Deserializer(decompressor);
+	loaded->deserialize(deserializer);
+	
+	decompressor->close();
+	
+	delete deserializer;
+	delete decompressor; 
+
+	return loaded;
+}
+
 int main(int argc, char* argv[]){
 	IpmtConfiguration& config = parseOptions(argc, argv);
 	if(config.helpFlag) {
@@ -51,14 +95,14 @@ int main(int argc, char* argv[]){
 			delete serializer;
 		}else printf("O arquivo de texto \'%s\' não pôde ser aberto para leitura\n", config.textFileName.c_str());
 	} else {
-		Decompressor* decompressor = new LZ77D(config.indexFileName.c_str());	
-		index = new SuffixTree(NULL);
-		index->decompress(decompressor);
-		decompressor->close();
+		index = loadIndex(config);
 		for(int i = 0; i < config.patterns.size(); ++i){
 			printf("Buscando padrão \'%s\' ...\n", config.patterns[i].c_str());
 			index->findMatchings(config.patterns[i].c_str(), config.patterns[i].size(), config.countFlag);	
 		}
 	}
 }
+
+
+
 

@@ -2,18 +2,17 @@
 #define DESERIALIZER_H
 #include "Global.h"
 #include "Decompressor.h"
-#include "IpmtConfiguration.h"
 
 class Deserializer { 
 public:
-	Deserializer(IpmtConfiguration& config);
+	Deserializer(Decompressor* decompressor);
 
 	int deserializeInt();
 	char deserializeChar();
 
 private:
 	Decompressor* decompressor;	
-	
+		
 	ull lastToken;
 	int lastTokenSize;
 

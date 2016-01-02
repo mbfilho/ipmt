@@ -1,11 +1,7 @@
 #include "DummyDecompressor.h"
 
-DummyDecompressor::DummyDecompressor(const char* filename) {
-	file = fopen(filename, "rb");
-	if(!file) {
-		printf("Nao foi possível abrir o arquivo \'%s\' para leitura\n", filename);
-		assert(file);
-	}
+DummyDecompressor::DummyDecompressor(FILE* inputFile) {
+	file = inputFile;
 }
 
  int DummyDecompressor::readInt() {

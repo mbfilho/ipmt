@@ -25,22 +25,30 @@ void SuffixTree::serialize(Compressor* compressor) {
 
 	//Escreve a quantidade de nós
 	compressor->writeInt(nodes.size(), 32);
-
-	queue<int> queue;
+	/*
+	* Preciso de uma fila de inteiros que possa comportar, 
+	* no pior caso, todos os nós da árvore. Mas, ao invés 
+	* de criar um outro array ou utilizar uma queue<int>
+	* da STL de c++, vou reutilizar o vector 'nodes'.
+	* Mais precisamente, vou utilizar o campo 'sl'
+	* dos nós. Note que esse campo não é mais necessário.
+	*/
+	int ini = 0, end = 0; //início e fim da fila
 	//Serializa a raiz 	
 	compressor->writeInt(nodes[0].start, sizeOfIntegers);
 	compressor->writeInt(nodes[0].end, sizeOfIntegers);
-	queue.push(0);
+	nodes[end++].sl = 0; //coloquei o '0' na fila
 	++saved;
 
-	while(!queue.empty()) {
-		int cur = queue.front();
-		queue.pop();
+	while(ini < end) { //fila não vazia
+		int cur = nodes[ini++].sl; //pega a cabeça da fila e a remove
+		
 		for(int nt = nodes[cur].firstChild; nt != -1; nt = nodes[nt].sibling) {
 			compressor->writeInt(0,1);
 			compressor->writeInt(nodes[nt].start, sizeOfIntegers);
 			compressor->writeInt(nodes[nt].end == -1 ? n-1 : nodes[nt].end, sizeOfIntegers);
-			queue.push(nt);
+			
+			nodes[end++].sl = nt; //coloca 'nt' na fila
 			++saved;
 		
 			if(percentageToPrint <= saved) {

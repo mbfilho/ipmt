@@ -23,9 +23,73 @@ SuffixArray::~SuffixArray(){
 
 
 void SuffixArray::serialize(Compressor* compressor) {
+	//Escreve o tamanho do texto e o texto
+	compressor->writeInt(n, 32);
+	int tot = 4 * n, saved = 0, percentageToPrint = 0;
+	for(int i = 0; i < n; ++i) {
+		compressor->writeInt(text[i], 8);
+		if(percentageToPrint  <= saved) {
+			printf("\r%.2lf%% concluído", double(saved)/tot * 100);
+			fflush(stdout);
+			percentageToPrint += tot/10;
+		}
+	}
+	saved = n;
+		
+	int sizeOfIntegers = SIZE_IN_BITS(int(n-1)); 
+	int *arrays[] = {suffixArray, lLcp, rLcp};
+	for(int j = 0; j < 3; ++j) {
+		for(int i = 0; i < n; ++i) {
+			compressor->writeInt(arrays[j][i], sizeOfIntegers);
+			++saved;
+			if(percentageToPrint  <= saved) {
+				printf("\r%.2lf%% concluído", double(saved)/tot * 100);
+				fflush(stdout);
+				percentageToPrint += tot/10;
+			}
+		}
+	}
+	printf("\n");
+
 }
 
 void SuffixArray::deserialize(Decompressor* decompressor) {
+	n = decompressor->readInt(32);
+	char* tmp = new char[n+1];
+		
+	int tot = n, loaded = 0, percentageToPrint = 0;
+	for(int i = 0; i < n; ++i) {
+		tmp[i] = decompressor->readInt(8);
+		if(percentageToPrint <= i) {
+			printf("\rDescomprimindo string ... %.2lf%% concluído", double(i)/tot * 100);
+			fflush(stdout);
+			percentageToPrint += tot/10;
+		}
+	}
+	tmp[n] = 0;
+	text = tmp;
+
+	printf("\n");
+	tot = 3 * n, loaded = 0, percentageToPrint = 0;
+	suffixArray = new int[n];
+	lLcp = new int[n];
+	rLcp = new int[n];
+	int sizeOfIntegers = SIZE_IN_BITS(int(n-1)); 
+	
+	int* arrays[] = {suffixArray, lLcp, rLcp};
+	for(int j = 0; j < 3; ++j) {
+		for(int i = 0; i < n; ++i) {
+			arrays[j][i] = decompressor->readInt(sizeOfIntegers);
+			++loaded;
+			if(percentageToPrint <= loaded) {
+				printf("\rDescomprimindo restante do índice ... %.2lf%% concluído", double(loaded)/tot * 100);
+				fflush(stdout);
+				percentageToPrint += tot/10;
+			}
+		}
+	}
+	printf("\n\n\n");
+	
 }
 
 
@@ -35,10 +99,10 @@ void SuffixArray::build(const char* text, size_t size) {
 
 	piecesRank = new int[MAX(256, size)+1];
 	suffixArray = new int[MAX(256, size)+1];
-	
+
 	count = new int[MAX(256, size)+1];
 	tmp = new int[MAX(256, size)+1];
-	
+
 	buildSuffixArray();
 	lcp = count; //para evitar fazer nova alocação
 	count = NULL; //Não vamos mais utilizar count
@@ -101,9 +165,11 @@ void SuffixArray::buildSuffixArray() {
 	for(int i = 0; i < n; ++i){
 		piecesRank[i] = count[128+text[i]];
 	}
-
+	int tot = 0;
+	while((1<<tot)<=n) ++tot;
 	k = 0;
 	while((1<<k) <= n){
+		printf("\rFase %d/%d", k,tot), fflush(stdout);
 		for(int i = 0; i < n; ++i)
 			suffixArray[i] = i;
 
@@ -131,8 +197,13 @@ void SuffixArray::buildSuffixArray() {
 		int* aux = piecesRank;
 		piecesRank = tmp;
 		tmp = aux;
+		if(rank == n+1) {
+			printf("\rArray totalmente construído na etapa %d/%d", k, tot);
+			break;
+		}
 		++k;
 	}
+	printf("\n");
 }
 
 void SuffixArray::sortPieces() {

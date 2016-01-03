@@ -14,7 +14,7 @@ protected:
 private:
 	int currentNode;
 	int size;
-	
+	vector<Byte> seq;	
 	/*
 	* Usaremos uma HashTable para implementar uma trie.
 	* Ou seja, indexaremos uma cadeia pelo par (no, char)
@@ -25,7 +25,7 @@ private:
 	*/
 	HashTable* hashTable;
 
-	void encodeAndWrite(int node);
+	void encodeAndWrite(int node, int sizeInBits);
 };
 
 

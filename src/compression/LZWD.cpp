@@ -40,6 +40,16 @@ void LZWD::readToken() {
 	}
 
 	lastNode = trieNode;
+
+	if(trie.size() + 1 >= (1<<19)) {
+		lastNode = -1;
+		trie.clear();
+
+		trie.push_back(ReversedTrieNode(-1, 0));//a raiz
+		for(int i = 0; i < 256; ++i) {
+			trie.push_back(ReversedTrieNode(0, i));
+		}
+	}
 }
 
 int LZWD::decodeInt() {

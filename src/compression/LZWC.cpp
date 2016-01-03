@@ -18,6 +18,14 @@ void LZWC::writeByte(int arg) {
 		//Insere o termo no dicionário	
 		hashTable->put(make_pair(currentNode, arg), size);
 		size++;
+		if(size >= (1<<19)) {
+			hashTable->clear();
+			size = 1;
+			for(int i = 0; i < 256; ++i) {
+				hashTable->put(make_pair(0,i), size);
+				size++;
+			}
+		}
 	
 		currentNode = hashTable->get(make_pair(0,arg));
 	} else 

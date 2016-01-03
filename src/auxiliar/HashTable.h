@@ -10,6 +10,7 @@ public:
 	
 	void put(pii key, int value);
 	int get(pii key);
+	void clear();
 
 private:
 	int getIndex(pii key);
@@ -19,6 +20,6 @@ private:
 
 	static const int TABLE_SIZE = 1 << 20;
 
-	vector<pair<pii,int> > table[TABLE_SIZE];
+	vector<pair<pii, int> > table[TABLE_SIZE];
 };
 #endif

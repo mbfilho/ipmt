@@ -11,7 +11,8 @@ void testCompression(const char *input, const char *output) {
 	printf("NIE\n");
 	FILE* in = fopen(input, "rb");
 	assert(in);
-	LZ77C comp(output, 4096, 16);
+	//LZ77C comp(output, 4096, 16);
+	LZ78C comp(output);
 	int tot = 0;	
 	while(true) {
 		int read = fread(buffer, sizeof(char), 1<<20, in);
@@ -22,15 +23,15 @@ void testCompression(const char *input, const char *output) {
 	printf("> %d\n", tot);
 	comp.flushAndClose();
 
-	LZ77D dec(output);
-	FILE* decomp = fopen("decomp", "wb");
-	int b;
-//	int tot =52428800;
-	for(int i = 0; i < tot; ++i) {
-		b = dec.readByte();
-		fwrite(&b, sizeof(char), 1, decomp);
-	}
-	fclose(decomp);
+//	LZ77D dec(output);
+//	FILE* decomp = fopen("decomp", "wb");
+//	int b;
+////	int tot =52428800;
+//	for(int i = 0; i < tot; ++i) {
+//		b = dec.readByte();
+//		fwrite(&b, sizeof(char), 1, decomp);
+//	}
+//	fclose(decomp);
 }
 
 void testCompressionAndDecompression() {

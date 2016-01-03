@@ -13,7 +13,7 @@ public:
 private:
 	int currentNode;
 	int size;
-	
+	vector<Byte> seq;	
 	/*
 	* Usaremos uma HashTable para implementar uma trie.
 	* Ou seja, indexaremos uma cadeia pelo par (no, char)

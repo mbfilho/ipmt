@@ -20,13 +20,13 @@ LZ77C::LZ77C(FILE* output, int bufferSize, int lookAheadSize) : Compressor(outpu
 	windowSize = WB;
 }
 
-void LZ77C::writeByte(int arg) {
+void LZ77C::feedRawByte(Byte arg) {
 	window[windowSize++] = arg;
 	if(windowSize == MAX_WINDOW_SIZE-1) 
 		emmitTokens(false);
 }
 
-void LZ77C::buildFailFunction(uchar* ahead, int aSize) {
+void LZ77C::buildFailFunction(Byte* ahead, int aSize) {
 	int k = fail[0] = -1;
 	for(int i = 1; i < aSize; ++i){
 		while(k != -1 && ahead[i] != ahead[k+1])
@@ -114,17 +114,12 @@ int LZ77C::emmitToken(int offset, Treap<CmpSet>& tree) {
 		bestMatchingPos
 		| (ull(bestMatchingSize) << (bitsWB))
 		| (ull(ui(mismatchingChar)) << (bitsWB+bitsWL));
-	insertIntoBuffer(token, 8 + bitsWB + bitsWL);
+	writeTokenToFile(token, 8 + bitsWB + bitsWL);
 	
 	return bestMatchingSize+1;
 }
 
-void LZ77C::flushAndClose() {
-	flushInput();
-
+void LZ77C::onClosing() {
 	emmitTokens(true);
-
-	flushOutput();
-	close();
 }
 

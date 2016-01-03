@@ -24,10 +24,10 @@ SuffixArray::~SuffixArray(){
 
 void SuffixArray::serialize(Compressor* compressor) {
 	//Escreve o tamanho do texto e o texto
-	compressor->writeInt(n, 32);
+	compressor->feedRawBits(n, 32);
 	int tot = 4 * n, saved = 0, percentageToPrint = 0;
 	for(int i = 0; i < n; ++i) {
-		compressor->writeInt(text[i], 8);
+		compressor->feedRawBits(text[i], 8);
 		if(percentageToPrint  <= saved) {
 			printf("\r%.2lf%% concluído", double(saved)/tot * 100);
 			fflush(stdout);
@@ -40,7 +40,7 @@ void SuffixArray::serialize(Compressor* compressor) {
 	int *arrays[] = {suffixArray, lLcp, rLcp};
 	for(int j = 0; j < 3; ++j) {
 		for(int i = 0; i < n; ++i) {
-			compressor->writeInt(arrays[j][i], sizeOfIntegers);
+			compressor->feedRawBits(arrays[j][i], sizeOfIntegers);
 			++saved;
 			if(percentageToPrint  <= saved) {
 				printf("\r%.2lf%% concluído", double(saved)/tot * 100);

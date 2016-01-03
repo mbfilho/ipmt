@@ -12,34 +12,35 @@ class Compressor {
 public:
 	Compressor(FILE* output);
 	/*
-	* Os algoritmos a seguir fornecem maneiras diferentes do usuário fazer a mesma coisa:
-	*	definir quais serão os próximos bits da stream de entrada. 
-	*/
-	virtual void writeInt(int arg, int sizeInBits);
+	* Esse método recebe uma sequência de bits (não comprimida)
+	* e repassa bytes à estratégia de compressão. Note que a
+	* quantidade de bits recebida pode não ser múltipla de 8.
+	* Por isso existe um 'buffer' de 1 byte para evitar passar
+	* bytes 'quebrados' para a compressão.
+	*/	
+	void feedRawBits(ull bits, int howMany);
 	
-	virtual void flushAndClose() = 0;
+	void flushAndClose();
 
 protected:
 	/*
-	* Método utilizado pelos algoritmos LZW e LZ78
-	* Estratégia:
-	* 	Seja a2 a representação binária de arg. A codificação de arg será:
-	* 		|a2|_1 + 0 + |a2|_2 + a2
-	* Tamanho dessa codificação (em bits):
-	* 	|a2| + log(|a2|) + 1 + log(|a2|) = O(|a2| + log(|a2|))
-	* ou, de maneira equivalente,
-	*	O(log(a2) + log log(a2))
+	* Alimenta a estratégia de compressão com 1 byte. Ele 
+	* pode estar 'incompleto' caso seja o final da stream
+	* de bits que será comprimida. Esse é o único caso.
 	*/
-	void encodeAndWriteInt(int arg);
+	virtual void feedRawByte(Byte arg) = 0;
 
-	virtual void writeByte(int arg) = 0;
-
-	virtual void flushOutput();
-	virtual void flushInput();
-
-	void insertIntoBuffer(ull token, int tokenSize);
-	void close();
-
+	/*
+	* Última chance da estratégia de compressão escrever na
+	* stream de saída (arquivo).
+	*/
+	virtual void onClosing() = 0;
+	
+	/*
+	* Um 'token' é um bloco de informações gerado pela estratégia
+	* de compressão. Por exemplo, um inteiro codificado pelo LZ78. 
+	*/
+	void writeTokenToFile(ull token, int tokenSize);
 private:
 	FILE* outputFile;
 	

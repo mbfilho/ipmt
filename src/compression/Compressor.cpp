@@ -11,20 +11,7 @@ Compressor::Compressor(FILE* output) {
 	unfinishedByteSize = 0;
 }
 
-void Compressor::encodeAndWriteInt(int arg) {
-	int size = (arg == 0 ? 1 : 32 - __builtin_clz(arg));
-	int sizeOfSize =  32 - __builtin_clz(size);
-
-	//token eh o monte de bits gerados da codificação de 'arg'	
-	ull token = 
-		(1ULL<<sizeOfSize)-1 //representação unária de size
-		| (ull(size) << (sizeOfSize + 1))//separador '0' + representação (binária) de size.
-		| (ull(ui(arg)) << (2*sizeOfSize+1)); //acrescenta o 'arg' propriamente dito
-	
-	insertIntoBuffer(token, 2*sizeOfSize+1+size);
-}
-
-void Compressor::writeInt(int bits, int howMany) {
+void Compressor::feedRawBits(ull bits, int howMany) {
 	unfinishedByte |= Byte(bits << unfinishedByteSize);
 	int filledBits = MIN(8 - unfinishedByteSize, howMany);
 	howMany -= filledBits;
@@ -32,13 +19,13 @@ void Compressor::writeInt(int bits, int howMany) {
 	unfinishedByteSize += filledBits;
 	
 	if(unfinishedByteSize == 8) {
-		writeByte(unfinishedByte);
+		feedRawByte(unfinishedByte);
 		unfinishedByte = 0;
 		unfinishedByteSize = 0;
 	}
 
 	while(howMany >= 8) {
-		writeByte(Byte(bits));
+		feedRawByte(Byte(bits));
 		bits >>= 8;
 		howMany -= 8;
 	}
@@ -49,21 +36,20 @@ void Compressor::writeInt(int bits, int howMany) {
 	}
 }
 
-void Compressor::close() {
+void Compressor::flushAndClose() {
+	//Flush input: envia um byte 'quebrado' para ser comprimido
+	if(unfinishedByteSize)
+		feedRawByte(unfinishedByte);
+	
+	onClosing();
+	
+	if(lastTokenSize)
+		fwrite(&lastToken, sizeof(ull), 1, outputFile);
+	
 	fclose(outputFile);
 }
 
-void Compressor::flushInput() {
-	if(unfinishedByteSize)
-		writeByte(unfinishedByte);
-}
-
-void Compressor::flushOutput() {
-	if(lastTokenSize)
-		fwrite(&lastToken, sizeof(ull), 1, outputFile);
-}
-
-void Compressor::insertIntoBuffer(ull token, int tokenSize){
+void Compressor::writeTokenToFile(ull token, int tokenSize) {
 	int filledbits = MIN(64 - lastTokenSize, tokenSize); //a quantidade de bits acrescentados ao último elemento
 	lastToken |= token << lastTokenSize;//O comportamento é indeterminado quando lastTokenSize=64 (a.k.a não funciona e para achar o erro é difícil).
 
@@ -84,7 +70,6 @@ void Compressor::insertIntoBuffer(ull token, int tokenSize){
 			lastTokenSize = 0;
 		}
 	}
-	
 }
 
 

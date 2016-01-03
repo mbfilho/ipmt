@@ -34,13 +34,14 @@ struct CmpSet {
 		return window[a+lcp] < window[b+lcp];
 	}
 };
+
 class LZ77C : public Compressor {
 public:
 	LZ77C(FILE* output, int bufferSize, int lookAheadSize);
-	
-	void writeByte(int arg);	
 
-	void flushAndClose();
+protected:
+	void feedRawByte(Byte arg);	
+	void onClosing();
 
 private:
 	int WB, WL; //os tamanhos das janelas de buffer (WB) e da janela 'lookahead' (WL)
@@ -54,7 +55,7 @@ private:
 
 	void buildFailFunction(uchar* ahead, int aSize);
 
-	uchar window[MAX_WINDOW_SIZE];
+	Byte window[MAX_WINDOW_SIZE];
 	int windowSize;
 };
 

@@ -42,6 +42,18 @@ enum IndexDataStructure {
 	SUFFIX_ARRAY, SUFFIX_TREE
 };
 
+/*
+ * Método utilizado pelos algoritmos LZW e LZ78
+ * Estratégia:
+ * 	Seja a2 a representação binária de arg. A codificação de arg será:
+ * 		|a2|_1 + 0 + |a2|_2 + a2
+ * Tamanho dessa codificação (em bits):
+ * 	|a2| + log(|a2|) + 1 + log(|a2|) = O(|a2| + log(|a2|))
+ * ou, de maneira equivalente,
+ *	O(log(a2) + log log(a2))
+ */
+extern ull encodeInt(int arg, int argSize, int* encodedSize);
+
 #define MIN(a,b) ((a)<(b))?(a):(b)
 #define MAX(a,b) (((a) < (b))?(b):(a))
 #define SIZE_IN_BITS(arg) ((arg) == 0 ? 1 : 32 - __builtin_clz(arg))

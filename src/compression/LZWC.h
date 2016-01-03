@@ -7,9 +7,10 @@ class LZWC : public Compressor {
 public:
 	LZWC(FILE* output);
 
-	void writeByte(int arg);
+protected:
+	void feedRawByte(Byte arg);
+	void onClosing();
 
-	void flushAndClose();
 private:
 	int currentNode;
 	int size;
@@ -23,6 +24,8 @@ private:
 	* no tratamento de colisões dentro da HashTable.
 	*/
 	HashTable* hashTable;
+
+	void encodeAndWrite(int node);
 };
 
 

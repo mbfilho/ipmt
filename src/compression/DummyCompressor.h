@@ -6,8 +6,10 @@
 class DummyCompressor : public Compressor {
 public:
 	DummyCompressor(FILE* output);	
-	void writeByte(int arg);
-	void flushAndClose();
+
+protected:
+	void feedRawByte(Byte arg);
+	void onClosing();
 };
 
 #endif

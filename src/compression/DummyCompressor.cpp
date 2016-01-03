@@ -3,13 +3,10 @@
 DummyCompressor::DummyCompressor(FILE* output): Compressor(output) {
 }
 
-void DummyCompressor::writeByte(int arg) {
-	insertIntoBuffer(arg, 8);
+void DummyCompressor::feedRawByte(Byte arg) {
+	writeTokenToFile(arg, 8);
 }
 
-void DummyCompressor::flushAndClose() {
-	flushInput();
-	flushOutput();
-	close();
+void DummyCompressor::onClosing() {
 }
 

@@ -7,13 +7,16 @@ class LZ78C : public Compressor {
 public:
 	LZ78C(FILE* output);
 
-	void writeByte(int arg);
+protected:
+	void feedRawByte(Byte arg);
+	void onClosing();
 
-	void flushAndClose();
 private:
 	HashTable* hashTable;
 	int dictionarySize;
 	int currentNode;
+
+	void encodeAndWrite(int arg);
 };
 
 

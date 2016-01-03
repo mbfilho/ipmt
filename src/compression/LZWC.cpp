@@ -10,10 +10,10 @@ LZWC::LZWC(FILE* output):Compressor(output) {
 	}
 }
 
-void LZWC::writeByte(int arg) {
+void LZWC::feedRawByte(Byte arg) {
 	int nextNode = hashTable->get(make_pair(currentNode, arg));
 	if(nextNode == -1) {
-		encodeAndWriteInt(currentNode); //O indice do termo no dicionário
+		encodeAndWrite(currentNode); //O indice do termo no dicionário
 	
 		//Insere o termo no dicionário	
 		hashTable->put(make_pair(currentNode, arg), size);
@@ -32,15 +32,15 @@ void LZWC::writeByte(int arg) {
 		currentNode = nextNode;
 }
 
-void LZWC::flushAndClose() {
-	flushInput();
+void LZWC::encodeAndWrite(int node) {
+	int size = SIZE_IN_BITS(node), encodedSize;	
+	ull token = encodeInt(node, size, &encodedSize);
+	writeTokenToFile(token, encodedSize);
+}
 
-	if(currentNode != 0) {
-		encodeAndWriteInt(currentNode);
-	}
-
-	flushOutput();
-	close();
+void LZWC::onClosing() {
+	if(currentNode != 0) 
+		encodeAndWrite(currentNode);
 }
 
 

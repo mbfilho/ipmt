@@ -9,10 +9,10 @@ SuffixTree::SuffixTree(const char* dotFileName) {
 
 void SuffixTree::serialize(Compressor* compressor) {
 	//Escreve o tamanho do texto e o texto
-	compressor->writeInt(n, 32);
+	compressor->feedRawBits(n, 32);
 	int tot = n + nodes.size(), saved = 0, percentageToPrint = 0;
 	for(int i = 0; i < n; ++i) {
-		compressor->writeInt(text[i], 8);
+		compressor->feedRawBits(text[i], 8);
 		++saved;
 		if(percentageToPrint  <= saved) {
 			printf("\r%.2lf%% concluído", double(saved)/tot * 100);
@@ -24,7 +24,7 @@ void SuffixTree::serialize(Compressor* compressor) {
 	int sizeOfIntegers = SIZE_IN_BITS(int(n-1)); 
 
 	//Escreve a quantidade de nós
-	compressor->writeInt(nodes.size(), 32);
+	compressor->feedRawBits(nodes.size(), 32);
 	/*
 	* Preciso de uma fila de inteiros que possa comportar, 
 	* no pior caso, todos os nós da árvore. Mas, ao invés 
@@ -35,8 +35,8 @@ void SuffixTree::serialize(Compressor* compressor) {
 	*/
 	int ini = 0, end = 0; //início e fim da fila
 	//Serializa a raiz 	
-	compressor->writeInt(nodes[0].start, sizeOfIntegers);
-	compressor->writeInt(nodes[0].end, sizeOfIntegers);
+	compressor->feedRawBits(nodes[0].start, sizeOfIntegers);
+	compressor->feedRawBits(nodes[0].end, sizeOfIntegers);
 	nodes[end++].sl = 0; //coloquei o '0' na fila
 	++saved;
 
@@ -44,9 +44,9 @@ void SuffixTree::serialize(Compressor* compressor) {
 		int cur = nodes[ini++].sl; //pega a cabeça da fila e a remove
 		
 		for(int nt = nodes[cur].firstChild; nt != -1; nt = nodes[nt].sibling) {
-			compressor->writeInt(0,1);
-			compressor->writeInt(nodes[nt].start, sizeOfIntegers);
-			compressor->writeInt(nodes[nt].end == -1 ? n-1 : nodes[nt].end, sizeOfIntegers);
+			compressor->feedRawBits(0,1);
+			compressor->feedRawBits(nodes[nt].start, sizeOfIntegers);
+			compressor->feedRawBits(nodes[nt].end == -1 ? n-1 : nodes[nt].end, sizeOfIntegers);
 			
 			nodes[end++].sl = nt; //coloca 'nt' na fila
 			++saved;
@@ -57,7 +57,7 @@ void SuffixTree::serialize(Compressor* compressor) {
 				percentageToPrint += tot/10;
 			}
 		}
-		compressor->writeInt(1,1);
+		compressor->feedRawBits(1,1);
 	}
 	printf("\n");
 }

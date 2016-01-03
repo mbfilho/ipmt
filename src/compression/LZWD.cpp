@@ -13,13 +13,6 @@ void LZWD::close() {
 	input.close();
 }
 
-int LZWD::readInt() {
-	int ret = 0;
-	for(int i = 0; i < 4; ++i) 
-		ret |= readByte()  << (i * 8);
-	return ret;	
-}
-
 int LZWD::readByte() {
 	if(buffer.size() == 0)
 		readToken();

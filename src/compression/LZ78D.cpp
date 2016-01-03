@@ -9,13 +9,6 @@ void LZ78D::close() {
 	input.close();
 }
 
-int LZ78D::readInt() {
-	int ret = 0;
-	for(int i = 0; i < 4; ++i) 
-		ret |= readByte() << (i * 8);
-	return ret;	
-}
-
 int LZ78D::readByte() {
 	if(buffer.size() == 0)
 		readToken();

@@ -15,13 +15,6 @@ void LZ77D::close() {
 	input.close();
 }
 
-int LZ77D::readInt() {
-	int ret = 0;
-	for(int i = 0; i < 4; ++i) 
-		ret |= readByte() << (i * 8);
-	return ret;	
-}
-
 int LZ77D::readByte() {
 	if(!availableBytes) {
 		if(windowOffset + WB + WL >= MAX_WINDOW_SIZE) {

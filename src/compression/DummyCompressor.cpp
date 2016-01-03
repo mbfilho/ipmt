@@ -8,7 +8,8 @@ void DummyCompressor::writeByte(int arg) {
 }
 
 void DummyCompressor::flushAndClose() {
-	flush(true);
+	flushInput();
+	flushOutput();
 	close();
 }
 

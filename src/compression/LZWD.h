@@ -7,8 +7,6 @@ class LZWD : public Decompressor {
 public:
 	LZWD(FILE* inputFile);
 	
-	int readInt();
-	int readByte();
 	void close();
 
 private:
@@ -27,5 +25,6 @@ private:
 
 	void readToken();
 	int decodeInt();
+	int readByte();
 };
 #endif

@@ -8,10 +8,7 @@ class LZ78D : public Decompressor {
 public:
 	LZ78D(FILE* inputFile);
 	
-	int readInt();
-	int readByte();
 	void close();
-
 private:
 	struct ReversedTrieNode {
 		int parent, label;
@@ -27,5 +24,6 @@ private:
 
 	void readToken();
 	int decodeInt();
+	int readByte();
 };
 #endif

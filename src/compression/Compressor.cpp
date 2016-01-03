@@ -6,6 +6,9 @@ Compressor::Compressor(FILE* output) {
 	
 	lastTokenSize = 0;
 	lastToken = 0;
+
+	unfinishedByte = 0;
+	unfinishedByteSize = 0;
 }
 
 void Compressor::encodeAndWriteInt(int arg) {
@@ -21,22 +24,28 @@ void Compressor::encodeAndWriteInt(int arg) {
 	insertIntoBuffer(token, 2*sizeOfSize+1+size);
 }
 
-void Compressor::writeInt(int arg) {
-	ui u = ui(arg);
-	for(int i = 0; i < 4; ++i) {
-		writeByte(u & 0xff);	
-		u >>= 8;
+void Compressor::writeInt(int bits, int howMany) {
+	unfinishedByte |= Byte(bits << unfinishedByteSize);
+	int filledBits = MIN(8 - unfinishedByteSize, howMany);
+	howMany -= filledBits;
+	bits >>= filledBits;
+	unfinishedByteSize += filledBits;
+	
+	if(unfinishedByteSize == 8) {
+		writeByte(unfinishedByte);
+		unfinishedByte = 0;
+		unfinishedByteSize = 0;
 	}
-}
 
-void Compressor::writeArrayOfInts(const int* arg, int size) {
-	for(int i = 0; i < size; ++i)
-		writeInt(arg[i]);
-}
+	while(howMany >= 8) {
+		writeByte(Byte(bits));
+		bits >>= 8;
+		howMany -= 8;
+	}
 
-void Compressor::writeText(const char* text, int size) {
-	for(int i = 0; i < size; ++i){
-		writeByte(uchar(text[i]));
+	if(howMany) {
+		unfinishedByte = bits;
+		unfinishedByteSize = howMany;
 	}
 }
 
@@ -44,8 +53,14 @@ void Compressor::close() {
 	fclose(outputFile);
 }
 
-void Compressor::flush(bool force) {
-	fwrite(&lastToken, sizeof(ull), 1, outputFile);
+void Compressor::flushInput() {
+	if(unfinishedByteSize)
+		writeByte(unfinishedByte);
+}
+
+void Compressor::flushOutput() {
+	if(lastTokenSize)
+		fwrite(&lastToken, sizeof(ull), 1, outputFile);
 }
 
 void Compressor::insertIntoBuffer(ull token, int tokenSize){

@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <string>
+#include <queue>
 #include <iostream>
 #include <fstream>
 #include <list>
@@ -15,6 +16,7 @@
 #include <map>
 #include <algorithm>
 #include <cstring>
+using std::queue;
 using std::pair;
 using std::map;
 using std::make_pair;

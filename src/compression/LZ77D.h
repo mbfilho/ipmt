@@ -9,11 +9,9 @@ public:
 	LZ77D(FILE* input, int wb, int wl);	
 	
 	void close(); 
-	int readInt();
-	int readByte();
 private:
 	InputBuffer input;
-
+	
 	int WB, WL;
 	int bitsWL, bitsWB;
 
@@ -21,7 +19,9 @@ private:
 	int windowOffset;	
 
 	int availableBytes;
+	
 
+	int readByte();
 	void readToken();
 };
 

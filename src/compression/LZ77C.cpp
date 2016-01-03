@@ -120,9 +120,11 @@ int LZ77C::emmitToken(int offset, Treap<CmpSet>& tree) {
 }
 
 void LZ77C::flushAndClose() {
+	flushInput();
+
 	emmitTokens(true);
 
-	flush(true);
+	flushOutput();
 	close();
 }
 

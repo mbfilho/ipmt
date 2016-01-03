@@ -23,11 +23,13 @@ Index* loadIndex(IpmtConfiguration& config) {
 
 	if(!indexFile) {
 		printf("Não foi possível abrir o arquivo \'%s\' para leitura.\n", config.indexFileName.c_str());
+		perror("Erro:");
 		assert(indexFile);
 	}
 
 	CompressionAlgorithm alg;
 	IndexDataStructure index;
+
 	assert(1 == fread(&index, sizeof(IndexDataStructure), 1, indexFile));
 	assert(1 == fread(&alg, sizeof(CompressionAlgorithm), 1, indexFile));
 
@@ -76,8 +78,8 @@ void storeIndex(IpmtConfiguration& config, Index* index) {
 		printf("Não foi possível abrir o arquivo \'%s\' para escrita\n", indexFileName.c_str());
 		assert(output);
 	}
-	fwrite(&indexType, sizeof(CompressionAlgorithm), 1, output);
-	fwrite(&alg, sizeof(IndexDataStructure), 1, output);
+	fwrite(&indexType, sizeof(IndexDataStructure), 1, output);
+	fwrite(&alg, sizeof(CompressionAlgorithm), 1, output);
 	
 	if(alg == LZ77) {
 		int args[] = {config.wb, config.wl};
@@ -127,19 +129,20 @@ int main(int argc, char* argv[]){
 	if(config.mode == "index") {
 		IndexDataStructure indexType = config.getIndexDataStructure();
 		if(indexType == SUFFIX_TREE) {
-			printf("Usando Árvore de Sufixos.\n");
+			printf("Construindo Árvore de Sufixos ...\n");
 			index = new SuffixTree(NULL);
 		} else if(indexType == SUFFIX_ARRAY) {
 			index = new SuffixArray();
-			printf("Usando Array de Sufixos.\n");
+			printf("Construindo Array de Sufixos ...\n");
 		}
 		if(FILE* in = fopen(config.textFileName.c_str(), "r")){
 			size_t read = fread(buffer, sizeof(char), SIZE-2, in);
 			if(indexType == SUFFIX_TREE)
 				buffer[read++] = '$';
 			buffer[read] = 0;
-
+			
 			index->build(buffer, read);
+			printf("Índice construído. Serializando ...\n");
 			storeIndex(config, index);
 
 		}else printf("O arquivo de texto \'%s\' não pôde ser aberto para leitura\n", config.textFileName.c_str());

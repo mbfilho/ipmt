@@ -25,11 +25,13 @@ void LZWC::writeByte(int arg) {
 }
 
 void LZWC::flushAndClose() {
+	flushInput();
+
 	if(currentNode != 0) {
 		encodeAndWriteInt(currentNode);
 	}
 
-	flush(true);
+	flushOutput();
 	close();
 }
 

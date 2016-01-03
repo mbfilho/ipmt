@@ -2,10 +2,12 @@ aux = auxiliar
 idx = indexes
 comp = compression
 
-all: $(idx)/Main.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o HashTable.o LZ77C.o LZ77D.o IpmtConfiguration.o 
-	g++ -O3 -g -I $(aux) -I $(comp) SuffixArray.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o HashTable.o LZ77C.o LZ77D.o Compressor.o IpmtConfiguration.o  $<
+all: $(idx)/Main.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o HashTable.o LZ77C.o LZ77D.o IpmtConfiguration.o Decompressor.o
+	g++ -O3 -g -I $(aux) -I $(comp) SuffixArray.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o HashTable.o LZ77C.o LZ77D.o Compressor.o IpmtConfiguration.o  Decompressor.o $<
 
 Compressor.o: $(comp)/Compressor.cpp $(comp)/Compressor.h $(aux)/Global.h
+	g++ -O3 -g -I $(aux) -c $<
+Decompressor.o: $(comp)/Decompressor.cpp $(comp)/Decompressor.h $(aux)/Global.h
 	g++ -O3 -g -I $(aux) -c $<
 
 IpmtConfiguration.o: $(aux)/IpmtConfiguration.cpp $(aux)/IpmtConfiguration.h $(aux)/Global.h

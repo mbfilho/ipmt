@@ -9,54 +9,72 @@ SuffixTree::SuffixTree(const char* dotFileName) {
 
 void SuffixTree::serialize(Compressor* compressor) {
 	//Escreve o tamanho do texto e o texto
-	compressor->writeInt(n);
+	compressor->writeInt(n, 32);
+	int tot = n + nodes.size(), saved = 0;
 	printf("|T| = %lu\n", n);
-	for(int i = 0; i < n; ++i)
-		compressor->writeByte(text[i]);
+	for(int i = 0; i < n; ++i) {
+		compressor->writeInt(text[i], 8);
+		++saved;
+		if(saved % 100000 == 0) printf("\r%.2lf%% concluído", double(saved)/tot);
+	}
+		
+	int sizeOfIntegers = SIZE_IN_BITS(int(n-1)); 
 
 	//Escreve a quantidade de nós
-	compressor->writeInt(nodes.size());
+	compressor->writeInt(nodes.size(), 32);
 
-	printf("Qtd De nos %d\n", int(nodes.size()));
-	//Escreve os nós em si
-	for(int i = 0; i < nodes.size(); ++i){
-		if(i%10000 == 0) printf("\r%lf%% completo", 100*double(i)/nodes.size());
-		SuffixTreeNode& cur = nodes[i];
-		compressor->writeInt(cur.start);
-		compressor->writeInt(cur.end);
-		//compressor->writeInt(cur.leaves);
-		if(cur.firstChild == -1) cur.firstChild = nodes.size();
-		compressor->writeInt(cur.firstChild);
-		if(cur.sibling == -1) cur.sibling = nodes.size();
-		compressor->writeInt(cur.sibling);
+	queue<int> queue;
+	//Serializa a raiz 	
+	compressor->writeInt(nodes[0].start, sizeOfIntegers);
+	compressor->writeInt(nodes[0].end, sizeOfIntegers);
+	queue.push(0);
+	++saved;
+
+	while(!queue.empty()) {
+		int cur = queue.front();
+		queue.pop();
+		for(int nt = nodes[cur].firstChild; nt != -1; nt = nodes[nt].sibling) {
+			compressor->writeInt(0,1);
+			compressor->writeInt(nodes[nt].start, sizeOfIntegers);
+			compressor->writeInt(nodes[nt].end == -1 ? n-1 : nodes[nt].end, sizeOfIntegers);
+			queue.push(nt);
+			++saved;
+			if(saved % 10000 == 0) printf("\r%.2lf%% concluído", double(saved)/tot);
+		}
+		compressor->writeInt(1,1);
 	}
 	printf("\n");
 }
 
 void SuffixTree::deserialize(Decompressor* decompressor) {
-	n = decompressor->readInt();
+	n = decompressor->readInt(32);
 	printf("rec|T| = %lu\n",n);
 	char* tmp = new char[n];
 	for(int i = 0; i < n; ++i)
-		tmp[i] = decompressor->readByte();
+		tmp[i] = decompressor->readInt(8);
 	tmp[n-1] = 0;
 	text = tmp;
 
-	//Atenção para a leitura dos nós!
-	//A ordem tem que ser a mesma da escrita!
-	int h = decompressor->readInt();
-	nodes.resize(h);
-	for(int i = 0; i < nodes.size(); ++i){
-		SuffixTreeNode& cur = nodes[i];
-		cur.start = decompressor->readInt();
-		cur.end = decompressor->readInt();
-		//cur.leaves = decompressor->readInt();
-		cur.firstChild = decompressor->readInt();
-		if(cur.firstChild == h)
-			cur.firstChild = -1;
-		cur.sibling = decompressor->readInt();
-		if(cur.sibling == h)
-			cur.sibling = -1;
+	int qtdOfNos = decompressor->readInt(32);
+	printf("Nodes: %d\n", qtdOfNos);
+	int sizeOfIntegers = SIZE_IN_BITS(int(n-1)); 
+	queue<int> queue;
+	nodes.push_back(SuffixTreeNode(-1,-1));
+	nodes[0].start = decompressor->readInt(sizeOfIntegers);
+	nodes[0].end = decompressor->readInt(sizeOfIntegers);
+	queue.push(0);
+
+	while(!queue.empty()) {
+		bool endOfChildren = decompressor->readInt(1);
+		if(endOfChildren)
+			queue.pop();
+		else {
+			int start = decompressor->readInt(sizeOfIntegers);
+			int end = decompressor->readInt(sizeOfIntegers);
+			nodes.push_back(SuffixTreeNode(start, end));
+			nodes[queue.front()].addChild(nodes.size()-1, nodes.back());
+			queue.push(nodes.size()-1);
+		}
 	}
 }
  

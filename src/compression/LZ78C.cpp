@@ -23,12 +23,14 @@ void LZ78C::writeByte(int arg) {
 
 
 void LZ78C::flushAndClose() {
+	flushInput();
+
 	if(currentNode != 0) {
 		encodeAndWriteInt(currentNode);
 		encodeAndWriteInt(0); //Don't care
 	}
 
-	flush(true);
+	flushOutput();
 	close();
 }
 

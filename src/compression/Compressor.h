@@ -13,15 +13,10 @@ public:
 	Compressor(FILE* output);
 	/*
 	* Os algoritmos a seguir fornecem maneiras diferentes do usuário fazer a mesma coisa:
-	*	definir quais serão os próximos bits da stream de entrada. Note que, os métodos
-	* 	que recebem arrays NÃO salvam o tamanho desses arrays. Se isso for necessário
-	*	o usuário dessa classe deve cuidar disso separadamente.
+	*	definir quais serão os próximos bits da stream de entrada. 
 	*/
-	virtual void writeInt(int arg);
-	virtual void writeArrayOfInts(const int* arg, int size);
-	virtual void writeText(const char* text, int size);
+	virtual void writeInt(int arg, int sizeInBits);
 	
-	virtual void writeByte(int arg) = 0;
 	virtual void flushAndClose() = 0;
 
 protected:
@@ -37,7 +32,11 @@ protected:
 	*/
 	void encodeAndWriteInt(int arg);
 
-	virtual void flush(bool force);
+	virtual void writeByte(int arg) = 0;
+
+	virtual void flushOutput();
+	virtual void flushInput();
+
 	void insertIntoBuffer(ull token, int tokenSize);
 	void close();
 
@@ -45,7 +44,10 @@ private:
 	FILE* outputFile;
 	
 	int lastTokenSize; //a quantidade de bits utilizados em token 
-	ull lastToken;
+	ull lastToken; //lastToken contem os bits da última tupla codificada pelo algoritmo
+
+	Byte unfinishedByte;
+	int unfinishedByteSize;
 };
 
 #endif

@@ -26,6 +26,10 @@ void LZ78D::readToken() {
 		it = buffer.insert(it, trie[i].label);
 
 	trie.push_back(ReversedTrieNode(trieNode, mismatchingByte));
+	if(trie.size() >= (1<<19)) {
+		trie.clear();
+		trie.push_back(ReversedTrieNode(-1, 0));//a raiz
+	}
 }
 
 int LZ78D::decodeInt() {

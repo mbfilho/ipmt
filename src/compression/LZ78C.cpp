@@ -15,6 +15,12 @@ void LZ78C::writeByte(int arg) {
 		//Insere o termo no dicionário	
 		hashTable->put(make_pair(currentNode, arg), dictionarySize);
 		++dictionarySize;
+
+		if(dictionarySize >= (1<<19) ) {
+			currentNode = 0;
+			dictionarySize = 1;
+			hashTable->clear();
+		}
 		
 		currentNode = 0;
 	} else 

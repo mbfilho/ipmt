@@ -27,9 +27,6 @@ public:
 	void serialize(Compressor* compressor); 
 	void deserialize(Decompressor* decompressor); 
 private:
-	//Os suffix links não ficam no nó para que não ocupem memória quando a árvore for carregada de um arquivo. Nessa ocasião eles não são necessários
-	vector<int> suffixLinks;
-
 	vector<SuffixTreeNode> nodes; //Os nós das árvores
 
 	const char* text; //O texto
@@ -40,8 +37,6 @@ private:
 	ImplicitPointer followSuffixLink(ImplicitPointer prt);
 	void canonise(ImplicitPointer& prt);
 	int split(ImplicitPointer prt, char ch, bool* isTerm);
-
-	void fixTree(SuffixTreeNode& node);
 
 	FILE* dotFile;//Arquivo para imprimir a árvore graficamente
 

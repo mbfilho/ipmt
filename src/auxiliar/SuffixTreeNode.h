@@ -14,9 +14,20 @@ public:
 			
 	//O rótulo da aresta (pai, este nó). [start, end]
 	int start, end;
-	
-	//Quantidade de folhas na subárvore enraizada por este nó
-	int leaves;
+
+	/*
+	* A razão de utilizarmos 'union' é porque 'leaves' só é 
+	* necessária durante a fase de busca, enquanto que 'sl' só é 
+	* necessário durante a fase de construção. Dessa forma 
+	* economizamos memória e sem nenhum esforço.
+	*/
+	union {	
+		//Quantidade de folhas na subárvore enraizada por este nó
+		int leaves;
+
+		//SuffixLink
+		int sl;
+	};
 
 	int firstChild;
 

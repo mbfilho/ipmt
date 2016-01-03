@@ -10,12 +10,15 @@ SuffixTree::SuffixTree(const char* dotFileName) {
 void SuffixTree::serialize(Compressor* compressor) {
 	//Escreve o tamanho do texto e o texto
 	compressor->writeInt(n, 32);
-	int tot = n + nodes.size(), saved = 0;
+	int tot = n + nodes.size(), saved = 0, percentageToPrint = 0;
 	printf("|T| = %lu\n", n);
 	for(int i = 0; i < n; ++i) {
 		compressor->writeInt(text[i], 8);
 		++saved;
-		if(saved % 100000 == 0) printf("\r%.2lf%% concluído", double(saved)/tot);
+		if(percentageToPrint  <= saved) {
+			printf("\r%.2lf%% concluído", double(saved)/tot * 100);
+			percentageToPrint += tot/10;
+		}
 	}
 		
 	int sizeOfIntegers = SIZE_IN_BITS(int(n-1)); 
@@ -39,7 +42,11 @@ void SuffixTree::serialize(Compressor* compressor) {
 			compressor->writeInt(nodes[nt].end == -1 ? n-1 : nodes[nt].end, sizeOfIntegers);
 			queue.push(nt);
 			++saved;
-			if(saved % 10000 == 0) printf("\r%.2lf%% concluído", double(saved)/tot);
+		
+			if(percentageToPrint <= saved) {
+				printf("\r%.2lf%% concluído", double(saved)/tot * 100);
+				percentageToPrint += tot/10;
+			}
 		}
 		compressor->writeInt(1,1);
 	}
@@ -76,6 +83,16 @@ void SuffixTree::deserialize(Decompressor* decompressor) {
 			queue.push(nodes.size()-1);
 		}
 	}
+
+	for(int i = nodes.size() - 1; i >= 0; --i) {
+		if(nodes[i].firstChild == -1)
+			nodes[i].leaves = 1;
+		else {
+			nodes[i].leaves = 0;
+			for(int nt = nodes[i].firstChild; nt != -1; nt = nodes[nt].sibling) 
+				nodes[i].leaves += nodes[nt].leaves;
+		}
+	}
 }
  
 void SuffixTree::build(const char* text, size_t n) {
@@ -97,7 +114,7 @@ void SuffixTree::build(const char* text, size_t n) {
 			nodes.at(w).addChild(leaf, nodes.at(leaf));
 
 			if(wprime != -1)
-				suffixLinks.at(wprime) = w;
+				nodes.at(wprime).sl = w;
 
 			wprime = w;	
 			if(current.v == 0 && !current.isImplicit()) {
@@ -112,7 +129,7 @@ void SuffixTree::build(const char* text, size_t n) {
 		assert(wprime == -1 || !current.isImplicit());
 
 		if(!current.isImplicit() && wprime != -1)
-			suffixLinks[wprime] = current.v;
+			nodes.at(wprime).sl = current.v;
 
 		//Desce do terminador, se ele existir, utilizando a aresta certa		
 		if(isTerm) {
@@ -125,21 +142,8 @@ void SuffixTree::build(const char* text, size_t n) {
 		canonise(current);
 		printTree(i);
 	}
-	fixTree(nodes.at(0));
 	if(dotFile)
 		fclose(dotFile);
-}
-
-void SuffixTree::fixTree(SuffixTreeNode& node){
-	if(node.isLeaf()){
-		node.end = n-1;
-		node.leaves = 1;
-	}else{
-		for(int nt = node.firstChild; nt != -1; nt = nodes.at(nt).sibling) {
-			fixTree(nodes.at(nt));
-			node.leaves += nodes.at(nt).leaves;
-		}
-	}
 }
 
 int SuffixTree::split(ImplicitPointer prt, char ch, bool* isTerm){
@@ -180,7 +184,7 @@ int SuffixTree::split(ImplicitPointer prt, char ch, bool* isTerm){
 
 ImplicitPointer SuffixTree::followSuffixLink(ImplicitPointer prt){
 	if(prt.v != 0)
-		prt.v = suffixLinks[prt.v];
+		prt.v = nodes[prt.v].sl;
 	else
 		++prt.st;
 
@@ -204,7 +208,7 @@ void SuffixTree::canonise(ImplicitPointer& prt){
 int SuffixTree::insertNodeIntoTree(int lblStart, int lblEnd) {
 	int newNodeIdx = nodes.size();
 	nodes.push_back(SuffixTreeNode(lblStart, lblEnd));
-	suffixLinks.push_back(-1);
+	nodes[newNodeIdx].sl = -1;
 
 	return newNodeIdx;
 }
@@ -275,8 +279,8 @@ void SuffixTree::printTree(int step) {
 void SuffixTree::_printTreeRec(int cur, int step){
 	SuffixTreeNode& node = nodes.at(cur);
 
-	if(suffixLinks[cur] != -1)
-		fprintf(dotFile, "%d -> %d [style=dotted,color=red]\n", cur, suffixLinks[cur]);
+	if(nodes[cur].sl != -1)
+		fprintf(dotFile, "%d -> %d [style=dotted,color=red]\n", cur, nodes[cur].sl);
 
 	for(int nt = node.firstChild; nt != -1; nt = nodes.at(nt).sibling){
 		SuffixTreeNode& next = nodes.at(nt);

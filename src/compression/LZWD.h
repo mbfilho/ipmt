@@ -12,13 +12,11 @@ public:
 private:
 	InputBuffer input;	
 	vector<Byte> buffer;
-	vector<pair<int,int> > table;
+	vector<pair<int,int> > dictionary;
 
-	int nextAvailableByte;
+	int nextAvailableBytePos;
 
-	int lastPos; //O último nó decodificado. Ele representa um casamento e precisa ser estendido com a letra que ocasionou o mismatch. Mas essa letra só é conhecida na leitura seguinte
-	
-	void readUncompressedSequence(int size);
+	pair<int,int> lastSequence;
 
 	void readToken();
 	int decodeInt();

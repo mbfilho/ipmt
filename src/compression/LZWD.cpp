@@ -2,13 +2,13 @@
 
 
 LZWD::LZWD(FILE* inputFile): input(inputFile) {
-	lastPos = -1;
+	lastSequence = make_pair(-1,-1);
 	for(int i = 0; i < 256; ++i)
 		buffer.push_back(i);
-	table.push_back(make_pair(-1,-1));//soh para facilitar as contas
+	dictionary.push_back(make_pair(-1,-1));//soh para facilitar as contas
 	for(int i= 0; i < 256; ++i)
-		table.push_back(make_pair(i, i));
-	nextAvailableByte = buffer.size();
+		dictionary.push_back(make_pair(i, i));
+	nextAvailableBytePos = buffer.size();
 }
 
 void LZWD::close() {
@@ -16,13 +16,10 @@ void LZWD::close() {
 }
 
 int LZWD::readByte() {
-	if(nextAvailableByte == buffer.size())
+	if(nextAvailableBytePos == buffer.size())
 		readToken();
 		
-	return buffer[nextAvailableByte++];
-}
-
-void LZWD::readUncompressedSequence(int size) {
+	return buffer[nextAvailableBytePos++];
 }
 
 void LZWD::readToken() {
@@ -31,39 +28,47 @@ void LZWD::readToken() {
 		++uncompressedSeqSize;
 	}
 
-	if(uncompressedSeqSize != 0) {
-		readUncompressedSequence(uncompressedSeqSize);
-	} else {
+	if(uncompressedSeqSize != 0) { //Vem aí uma sequência não comprimida
+		if(lastSequence.first != -1) {
+			int sizeOfLastSeq = lastSequence.second - lastSequence.first + 1;
+			dictionary.push_back(make_pair(buffer.size()-sizeOfLastSeq, buffer.size()));
+		}
+
+		lastSequence = make_pair(buffer.size(), buffer.size() + uncompressedSeqSize - 1);
+		for(int i = 0; i < uncompressedSeqSize; ++i)
+			buffer.push_back(input.getBunchOfBits(8));
+
+	} else { //Vem ai um token comprimido
 		int pos = decodeInt();
-		if(pos == table.size()) {
-			table.push_back(make_pair(buffer.size(), -1));
-			for(int i = table[lastPos].first; i <= table[lastPos].second; ++i) 
+		if(pos == dictionary.size()) {
+			dictionary.push_back(make_pair(buffer.size(), -1));
+			for(int i = lastSequence.first; i <= lastSequence.second; ++i) 
 				buffer.push_back(buffer[i]);
-			buffer.push_back(buffer[table[lastPos].first]);	
-			table.back().second = buffer.size() - 1;
+			buffer.push_back(buffer[lastSequence.first]);	
+			dictionary.back().second = buffer.size() - 1;
 		} else {
-			if(lastPos != -1) {
-				int sizeOfLastSeq = table[lastPos].second - table[lastPos].first + 1;
-				table.push_back(make_pair(buffer.size()-sizeOfLastSeq, buffer.size()));
+			if(lastSequence.first != -1) {
+				int sizeOfLastSeq = lastSequence.second - lastSequence.first + 1;
+				dictionary.push_back(make_pair(buffer.size()-sizeOfLastSeq, buffer.size()));
 			}
-			for(int i = table[pos].first; i <= table[pos].second; ++i){
+			for(int i = dictionary[pos].first; i <= dictionary[pos].second; ++i){
 				buffer.push_back(buffer[i]);	
 			}
 		}
 
-		lastPos = pos;
+		lastSequence = dictionary[pos];
 	}
-	
-	if(table.size() + 1 >= (1<<19)) {
-		lastPos = -1;
-		
-		for(int i = 0; nextAvailableByte + i < buffer.size(); ++i){
-			buffer[256+i] = buffer[nextAvailableByte+i];
-		}
-		buffer.resize(256 + buffer.size() - nextAvailableByte);
-		nextAvailableByte = 256;
 
-		table.resize(257);
+	if(dictionary.size() + 1 >= (1<<19)) {
+		lastSequence = make_pair(-1,1);
+		
+		for(int i = 0; nextAvailableBytePos + i < buffer.size(); ++i){
+			buffer[256+i] = buffer[nextAvailableBytePos+i];
+		}
+		buffer.resize(256 + buffer.size() - nextAvailableBytePos);
+		nextAvailableBytePos = 256;
+
+		dictionary.resize(257);
 	}
 }
 

@@ -97,13 +97,14 @@ void SuffixArray::build(const char* text, size_t size) {
 	this->n = size;
 	this->text = text;	
 
-	piecesRank = new int[MAX(256, size)+1];
-	suffixArray = new int[MAX(256, size)+1];
+	piecesRank = new int[size];
+	suffixArray = new int[size];
 
 	count = new int[MAX(256, size)+1];
 	tmp = new int[MAX(256, size)+1];
 
 	buildSuffixArray();
+
 	lcp = count; //para evitar fazer nova alocação
 	count = NULL; //Não vamos mais utilizar count
 
@@ -168,36 +169,27 @@ void SuffixArray::buildSuffixArray() {
 	int tot = 0;
 	while((1<<tot)<=n) ++tot;
 	k = 0;
+	for(int i = 0; i < n; ++i)
+		suffixArray[i] = i;
 	while((1<<k) <= n){
 		printf("\rFase %d/%d", k,tot), fflush(stdout);
-		for(int i = 0; i < n; ++i)
-			suffixArray[i] = i;
-
+	
 		sortPieces();
+		
 		int rank = 1;
-		int i = 0;
-		while(i < n){
-			int j = i;
-			int pi[2], pj[2];
-			getPair(suffixArray[i], pi);
-
-			while(j < n){
-				getPair(suffixArray[j], pj);
-				
-				if(pi[0] == pj[0] && pi[1] == pj[1]){
-				   	tmp[suffixArray[j]] = rank;
-					++j;
-				} else {
-					++rank;
-					break;
-				}
-			}
-			i = j;	
+		tmp[suffixArray[0]] = 1;
+		
+		int pi[2], pj[2], *plast = pi, *pcur = pj;
+		getPair(suffixArray[0], plast);
+		for(int i = 1; i < n; ++i) {
+			getPair(suffixArray[i], pcur);
+			tmp[suffixArray[i]] = pcur[1] == plast[1] && pcur[0] == plast[0] ? tmp[suffixArray[i-1]] : ++rank;
+			std::swap(plast, pcur);
 		}
-		int* aux = piecesRank;
-		piecesRank = tmp;
-		tmp = aux;
-		if(rank == n+1) {
+
+		std::swap(piecesRank, tmp);
+
+		if(rank == n) {
 			printf("\rArray totalmente construído na etapa %d/%d", k, tot);
 			break;
 		}
@@ -209,23 +201,22 @@ void SuffixArray::buildSuffixArray() {
 void SuffixArray::sortPieces() {
 	int pi[2];
 	for(int d = 1; d >= 0; --d){
-		for(int i =0 ; i <= MAX(256, n); ++i)
+		for(int i =0 ; i <= n; ++i)
 			count[i]=0; 
 
 		for(int i = 0; i < n; ++i){
 			getPair(suffixArray[i], pi);
 			++count[pi[d]];
 		}
-		for(int i = 1; i <= MAX(256, n); ++i)
+
+		for(int i = 1; i <= n; ++i)
 			count[i] += count[i-1];
-		
+
 		for(int i = n - 1; i >= 0; --i){
 			getPair(suffixArray[i], pi);
 			tmp[--count[pi[d]]] = suffixArray[i];
 		}
-		int* aux = tmp;
-		tmp = suffixArray;
-		suffixArray = aux;
+		std::swap(tmp, suffixArray);
 	}
 }
 

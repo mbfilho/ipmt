@@ -32,9 +32,10 @@ int LZ77D::readByte() {
 }
 
 void LZ77D::readToken() {
-	int pos, size, mismatching;	
-	pos = input.getBunchOfBits(bitsWB);
+	int pos = -10000000, size, mismatching;	
 	size = input.getBunchOfBits(bitsWL);
+	if(size)
+		pos = input.getBunchOfBits(bitsWB);
 	mismatching = input.getBunchOfBits(8);
 		
 	for(int i = 0; i < size; ++i) {

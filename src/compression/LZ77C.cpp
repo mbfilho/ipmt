@@ -110,11 +110,18 @@ int LZ77C::emmitToken(int offset, Treap<CmpSet>& tree) {
 	if(!bestMatchingSize)
 		bestMatchingPos = 0;
 
-	ull token = 
-		bestMatchingPos
-		| (ull(bestMatchingSize) << (bitsWB))
-		| (ull(ui(mismatchingChar)) << (bitsWB+bitsWL));
-	writeTokenToFile(token, 8 + bitsWB + bitsWL);
+	ull token; 
+	if(!bestMatchingSize) {
+		token = ull(mismatchingChar) << bitsWL; // '0'[WL] + [8]
+		writeTokenToFile(token, 8 + bitsWL);
+	} else {
+		token = 
+			ull(bestMatchingSize)
+			| (ull(bestMatchingPos) << bitsWL)
+			| (ull(mismatchingChar) << (bitsWB+bitsWL));
+		writeTokenToFile(token, 8 + bitsWB + bitsWL);
+	}
+
 	
 	return bestMatchingSize+1;
 }

@@ -16,11 +16,14 @@ void LZWC::feedRawByte(Byte arg) {
 		int nodeSize = SIZE_IN_BITS(currentNode);
 		int curNodeRpr = 1 + nodeSize + 2*SIZE_IN_BITS(nodeSize);
 
-		if(1+curNodeRpr <= 9*seq.size()){
+		if(curNodeRpr <= 9*seq.size()){
 			writeTokenToFile(1, 1);
 			encodeAndWrite(currentNode, nodeSize); //O indice do termo no dicionário
 		}else {
-			writeTokenToFile(0, seq.size());
+			writeTokenToFile(1ULL << (seq.size()), 1+seq.size());
+			if(seq.size() > 63) {
+				throw 11;
+			}
 			int i = 0;
 			while(seq.size() - i >= 8) {
 				ull token =  0;
@@ -63,13 +66,19 @@ void LZWC::feedRawByte(Byte arg) {
 
 void LZWC::encodeAndWrite(int node, int sizeInBits) {
 	int encodedSize;	
-	ull token = encodeInt(node, size, &encodedSize);
+	ull token = encodeInt(node, sizeInBits, &encodedSize);
+	if(encodedSize <= 0 || encodedSize > 64) {
+		printf("EncodedSize %d Node %d SizeInBits %d\n", encodedSize, node, sizeInBits);
+	}
+	assert(encodedSize > 0 && encodedSize <= 64);
 	writeTokenToFile(token, encodedSize);
 }
 
 void LZWC::onClosing() {
-	if(currentNode != 0) 
+	if(currentNode != 0)  {
+		writeTokenToFile(1, 1);
 		encodeAndWrite(currentNode, SIZE_IN_BITS(currentNode));
+	}
 }
 
 

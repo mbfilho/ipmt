@@ -135,6 +135,7 @@ int main(int argc, char* argv[]){
 			index = new SuffixArray();
 			printf("Construindo Array de Sufixos ...\n");
 		}
+
 		if(FILE* in = fopen(config.textFileName.c_str(), "r")){
 			size_t read = fread(buffer, sizeof(char), SIZE-2, in);
 			if(indexType == SUFFIX_TREE)
@@ -143,11 +144,24 @@ int main(int argc, char* argv[]){
 			
 			index->build(buffer, read);
 			printf("Índice construído. Serializando ...\n");
+			if(config.interrupt == 0) {
+				printf("Interrompendo após construção\n");
+				return 0;
+			}
 			storeIndex(config, index);
+			if(config.interrupt == 1) {
+				printf("Interrompendo após compressão\n");
+				return 0;
+			}
 
 		}else printf("O arquivo de texto \'%s\' não pôde ser aberto para leitura\n", config.textFileName.c_str());
+		
 	} else {
 		index = loadIndex(config);
+		if(config.interrupt == 2) {
+			printf("Interrompendo após compressão\n");
+			return 0;
+		}
 		for(int i = 0; i < config.patterns.size(); ++i){
 			printf("Buscando padrão \'%s\' ...\n", config.patterns[i].c_str());
 			index->findMatchings(config.patterns[i].c_str(), config.patterns[i].size(), config.countFlag);	

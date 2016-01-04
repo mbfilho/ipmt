@@ -6,6 +6,7 @@ IpmtConfiguration::IpmtConfiguration() {
 	countFlag = 0;
 	wb = 1024;
 	wl = 16;
+	interrupt = -1;
 }
 
 CompressionAlgorithm IpmtConfiguration::getCompressionAlgorithm() {

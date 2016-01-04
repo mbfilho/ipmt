@@ -7,6 +7,8 @@ class IpmtConfiguration {
 public:
 	string mode;
 	
+	int interrupt; //test-only!
+	
 	string indexType;
 	string compression;
 	int countFlag;

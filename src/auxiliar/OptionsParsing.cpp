@@ -22,6 +22,7 @@ struct option options[] =
 	{"wb", required_argument, 0, LZ77_BUFFER},
 	{"wl", required_argument, 0, LZ77_LOOKA},
 	{"pattern", required_argument, 0, 'p'},
+	{"interrupt", required_argument, 0, 'i'},
 	{0, 0, 0, 0}
 };
 
@@ -32,11 +33,13 @@ struct option options[] =
 */
 IpmtConfiguration& parseOptions(int argc, char* argv[]) {
 	while(true){
-	    int c = getopt_long (argc, argv, "cp:", options, NULL);
+	    int c = getopt_long (argc, argv, "cp:i:", options, NULL);
 	
 	    if(c == -1) 
 	    	break;
-		if(c == LZ77_BUFFER) {
+		if(c == 'i') {
+			config.interrupt = atoi(optarg);
+		}else if(c == LZ77_BUFFER) {
 			config.wb = atoi(optarg);
 		} else if(c == LZ77_LOOKA) {
 			config.wl = atoi(optarg);

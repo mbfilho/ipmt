@@ -297,9 +297,8 @@ void SuffixTree::getMatchings(const char* pat, size_t m, SuffixTreeNode& node, i
 void SuffixTree::printTree(int step) {
 	if(!dotFile)
 		return;
-	static int cnt = 0;
 
-	fprintf(dotFile, "digraph Tree%d_%d{\n", step, cnt++);
+	fprintf(dotFile, "digraph Tree_%d{\n", step);
 	
 	for(int i = 0; i < nodes.size(); ++i)
 		fprintf(dotFile, "%d [label=\"%d\"]\n", i, i);
@@ -317,12 +316,11 @@ void SuffixTree::_printTreeRec(int cur, int step){
 	for(int nt = node.firstChild; nt != -1; nt = nodes.at(nt).sibling){
 		SuffixTreeNode& next = nodes.at(nt);
 		int labelSize = (next.end == -1 ? step : next.end) - next.start + 1;
-		char buffer[10000];
-		sprintf(buffer, "%.*s", labelSize, text + next.start);
-		if(strlen(buffer) != labelSize){
-		}
-//		fprintf(dotFile, "%d -> %d\n", cur, nt);
-		fprintf(dotFile, "%d -> %d [label=\"%.*s\"]\n", cur, nt, labelSize, text + next.start);
+		if(step == n-1 && next.end == -1) { //o caractere '$' faz parte do label
+			fprintf(dotFile, "%d -> %d [label=\"%.*s", cur, nt, labelSize-1, text+next.start);
+			fprintf(dotFile, "$\"]\n");
+		} else
+	 		fprintf(dotFile, "%d -> %d [label=\"%.*s\"]\n", cur, nt, labelSize, text + next.start);
 
 		_printTreeRec(nt, step);
 	}

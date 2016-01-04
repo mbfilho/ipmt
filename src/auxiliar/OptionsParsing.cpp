@@ -13,6 +13,7 @@ IpmtConfiguration config;
 #define INDEXTYPE 2
 #define LZ77_BUFFER 3
 #define LZ77_LOOKA 4
+#define DOT_FILE 5
 struct option options[] =
 {
 	{"count", no_argument, &config.countFlag, 'c'},
@@ -23,6 +24,7 @@ struct option options[] =
 	{"wl", required_argument, 0, LZ77_LOOKA},
 	{"pattern", required_argument, 0, 'p'},
 	{"interrupt", required_argument, 0, 'i'},
+	{"dotfile", required_argument, 0, DOT_FILE},
 	{0, 0, 0, 0}
 };
 
@@ -39,7 +41,9 @@ IpmtConfiguration& parseOptions(int argc, char* argv[]) {
 	    	break;
 		if(c == 'i') {
 			config.interrupt = atoi(optarg);
-		}else if(c == LZ77_BUFFER) {
+		} else if(c == DOT_FILE) {
+			config.dotFile = optarg;
+		} else if(c == LZ77_BUFFER) {
 			config.wb = atoi(optarg);
 		} else if(c == LZ77_LOOKA) {
 			config.wl = atoi(optarg);

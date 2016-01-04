@@ -130,7 +130,10 @@ int main(int argc, char* argv[]){
 		IndexDataStructure indexType = config.getIndexDataStructure();
 		if(indexType == SUFFIX_TREE) {
 			printf("Construindo Árvore de Sufixos ...\n");
-			index = new SuffixTree(NULL);
+			const char* dotFile = NULL;
+			if(config.dotFile != "")
+				dotFile = config.dotFile.c_str();
+			index = new SuffixTree(dotFile);
 		} else if(indexType == SUFFIX_ARRAY) {
 			index = new SuffixArray();
 			printf("Construindo Array de Sufixos ...\n");
@@ -138,8 +141,9 @@ int main(int argc, char* argv[]){
 
 		if(FILE* in = fopen(config.textFileName.c_str(), "r")){
 			size_t read = fread(buffer, sizeof(char), SIZE-2, in);
+			if(buffer[read-1] == '\n') --read;
 			if(indexType == SUFFIX_TREE)
-				buffer[read++] = '$';
+				buffer[read++] = 0; //adiciona um caractere que não aprece no texto. Vai que o '$' aparece ...
 			buffer[read] = 0;
 			
 			index->build(buffer, read);

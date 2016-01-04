@@ -7,8 +7,10 @@ class IpmtConfiguration {
 public:
 	string mode;
 	
-	int interrupt; //test-only!
+	int interrupt; //apenas para teste!
 	
+	string dotFile;
+		
 	string indexType;
 	string compression;
 	int countFlag;

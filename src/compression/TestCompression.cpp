@@ -8,20 +8,20 @@
 
 char buffer[1<<20];
 void testCompression(const char *input, const char *output) {
-	printf("NIE\n");
-	FILE* in = fopen(input, "rb");
-	assert(in);
-	//LZ77C comp(output, 4096, 16);
-	LZ78C comp(output);
-	int tot = 0;	
-	while(true) {
-		int read = fread(buffer, sizeof(char), 1<<20, in);
-		if(!read) break;
-		tot += read;
-		comp.writeText(buffer, read);
-	}
-	printf("> %d\n", tot);
-	comp.flushAndClose();
+//	printf("NIE\n");
+//	FILE* in = fopen(input, "rb");
+//	assert(in);
+//	//LZ77C comp(output, 4096, 16);
+//	LZ78C comp(output);
+//	int tot = 0;	
+//	while(true) {
+//		int read = fread(buffer, sizeof(char), 1<<20, in);
+//		if(!read) break;
+//		tot += read;
+//		comp.writeText(buffer, read);
+//	}
+//	printf("> %d\n", tot);
+//	comp.flushAndClose();
 
 //	LZ77D dec(output);
 //	FILE* decomp = fopen("decomp", "wb");
@@ -35,32 +35,37 @@ void testCompression(const char *input, const char *output) {
 }
 
 void testCompressionAndDecompression() {
-	LZ77C comp("comprimido", 8, 4);
-	int qtd = 10000;
-	for(int i = 0; i < qtd; ++i)
-		comp.writeInt(i);
+	FILE* out = fopen("comprimido", "wb");
+	assert(out);
+
+	LZWC comp(out);
+	int qtd = 1009;
+	comp.feedRawBits(48041, 32);
+//	for(int i = 0; i < qtd; ++i)
+//		comp.feedRawBits(i, 32);
 
 	comp.flushAndClose();
-
-	LZ77D decomp("comprimido");
-	for(int i = 0; i < qtd; ++i)
-		printf("> %d\n", decomp.readInt());
+	
+	FILE* in = fopen("comprimido", "rb");
+	assert(in);
+	LZWD decomp(in);
+		printf("> %d\n", decomp.readInt(32));
 	decomp.close();
 }
 
-void testOnlyCompression() {
-	LZ77C comp("out", 4, 4);
-	int seq[] = {0, 1, 1, 2, 0, 1, 1, 0, 2, 3, 0, 1, 0, 0, 0};
-	int s = 15;
-
-	for(int i = 0; i < s; ++i)
-		comp.writeByte(seq[i]);
-	comp.flushAndClose();
-}
+//void testOnlyCompression() {
+//	LZ77C comp("out", 4, 4);
+//	int seq[] = {0, 1, 1, 2, 0, 1, 1, 0, 2, 3, 0, 1, 0, 0, 0};
+//	int s = 15;
+//
+//	for(int i = 0; i < s; ++i)
+//		comp.writeByte(seq[i]);
+//	comp.flushAndClose();
+//}
 
 int main(int argc, char* argv[]) {
 //	testOnlyCompression();
-	testCompression(argv[1], argv[2]);	
-//	testCompressionAndDecompression();
+//	testCompression(argv[1], argv[2]);	
+	testCompressionAndDecompression();
 }
 

@@ -17,6 +17,7 @@ private:
 	int curPos;
 
 	ull nextBit;
+	int nextBitPos;
 
 	FILE* file;
 

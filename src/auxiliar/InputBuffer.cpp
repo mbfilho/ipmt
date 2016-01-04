@@ -7,6 +7,7 @@ InputBuffer::InputBuffer(FILE* inputFile) {
 	buffer = new ull[maxSize];
 	size = curPos = 0;
 	nextBit = 0;
+	nextBitPos = 64;
 }
 
 void InputBuffer::close() {
@@ -19,19 +20,32 @@ int InputBuffer::getNextBit() {
 	int bit = 0;
 	if(buffer[curPos] & nextBit) bit = 1;
 	nextBit <<= 1;
+	++nextBitPos;
 
 	return bit;
 }
 
 ull InputBuffer::getBunchOfBits(int howMany) {
-	ull res = 0;
-	for(int i = 0; i < howMany; ++i)
-		res |= ull(getNextBit()) << i;
-	return res;
+	ull bunch = 0;
+	int curSize = 0;
+
+	while(curSize < howMany) {	
+		fillIfEmpty();
+
+		int read = MIN(64 - nextBitPos, howMany - curSize);
+		ull mask = (read == 64) ? -1 : (1ULL << read) - 1;
+		bunch |=  ((buffer[curPos] >> nextBitPos) & mask) << curSize; 
+		curSize += read;
+
+		nextBitPos += read;
+		nextBit = (1ULL << nextBitPos);
+	}
+
+	return bunch;
 }
 
 void InputBuffer::fillIfEmpty() {
-	if(!nextBit) { //bitPos = 64
+	if(nextBitPos == 64) { //bitPos = 64
 		++curPos;
 		if(curPos >= size) {
 			curPos = 0;	
@@ -39,6 +53,7 @@ void InputBuffer::fillIfEmpty() {
 		}
 
 		nextBit = 1;
+		nextBitPos = 0;
 	}
 }
 

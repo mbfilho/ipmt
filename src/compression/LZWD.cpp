@@ -34,18 +34,17 @@ void LZWD::readToken() {
 			dictionary.push_back(make_pair(buffer.size()-sizeOfLastSeq, buffer.size()));
 		}
 
-		lastSequence = make_pair(buffer.size(), buffer.size() + uncompressedSeqSize - 1);
 		for(int i = 0; i < uncompressedSeqSize; ++i)
 			buffer.push_back(input.getBunchOfBits(8));
+		lastSequence = make_pair(nextAvailableBytePos, buffer.size() - 1);
 
 	} else { //Vem ai um token comprimido
 		int pos = decodeInt();
 		if(pos == dictionary.size()) {
-			dictionary.push_back(make_pair(buffer.size(), -1));
 			for(int i = lastSequence.first; i <= lastSequence.second; ++i) 
 				buffer.push_back(buffer[i]);
 			buffer.push_back(buffer[lastSequence.first]);	
-			dictionary.back().second = buffer.size() - 1;
+			dictionary.push_back(make_pair(nextAvailableBytePos, buffer.size()-1));
 		} else {
 			if(lastSequence.first != -1) {
 				int sizeOfLastSeq = lastSequence.second - lastSequence.first + 1;

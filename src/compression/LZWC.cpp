@@ -13,34 +13,17 @@ LZWC::LZWC(FILE* output):Compressor(output) {
 void LZWC::feedRawByte(Byte arg) {
 	int nextNode = hashTable->get(make_pair(currentNode, arg));
 	if(nextNode == -1) {
-		int nodeSize = SIZE_IN_BITS(currentNode);
-		int curNodeRpr = 1 + nodeSize + 2*SIZE_IN_BITS(nodeSize);
-
-		if(curNodeRpr <= 9*seq.size()){
+		int encodedNodeSize;
+		ull token = encodeInt(currentNode, SIZE_IN_BITS(currentNode), &encodedNodeSize);
+	
+		int sizeOfUncompressedSeq = 1 + 9*seq.size(); //(1 + seq.size()) + 8 * seq.size();
+		if(1 + encodedNodeSize <= sizeOfUncompressedSeq){ //verifica se vale a pena codificar os tokens ou enviar a sequência descomprimida
 			writeTokenToFile(1, 1);
-			encodeAndWrite(currentNode, nodeSize); //O indice do termo no dicionário
+			writeTokenToFile(token, encodedNodeSize);
 		}else {
 			writeTokenToFile(1ULL << (seq.size()), 1+seq.size());
-			if(seq.size() > 63) {
-				throw 11;
-			}
-			int i = 0;
-			while(seq.size() - i >= 8) {
-				ull token =  0;
-				for(int j = 7; j >=0; --j)
-					token = (token << 8) | seq[i+j];
-				i += 8;
-				writeTokenToFile(token, 64);
-			}
-			
-			ull token = 0;
-			int tSize = 0;
-			for(int j = seq.size() - 1; j >= i; --j) {
-				token = (token << 8) | seq[j];
-				tSize += 8;
-			}
-			if(tSize)
-				writeTokenToFile(token, tSize);
+			for(int i = 0; i < seq.size(); ++i)
+				writeTokenToFile(seq[i], 8);
 		}
 	
 		//Insere o termo no dicionário	

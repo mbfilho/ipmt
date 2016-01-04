@@ -2,7 +2,8 @@
 
 
 LZ78D::LZ78D(FILE* inputFile): input(inputFile) {
-	trie.push_back(ReversedTrieNode(-1, 0));//a raiz
+	dictionary.push_back(make_pair(1, 0)); //Só para facilitar as contas
+	nextAvailableBytePos = 0;
 }
 
 void LZ78D::close() {
@@ -10,25 +11,28 @@ void LZ78D::close() {
 }
 
 int LZ78D::readByte() {
-	if(buffer.size() == 0)
+	if(nextAvailableBytePos == buffer.size())
 		readToken();
-	int byte = buffer.front();
-	buffer.pop_front();
-
-	return byte;
+	return buffer[nextAvailableBytePos++];
 }
 
 void LZ78D::readToken() {
-	int trieNode = decodeInt(), mismatchingByte = decodeInt();
-	list<int>::iterator it = buffer.end();
-	it = buffer.insert(it, mismatchingByte);
-	for(int i = trieNode; i != 0; i = trie[i].parent) 
-		it = buffer.insert(it, trie[i].label);
+	int entry = decodeInt(), mismatchingByte = decodeInt();
 
-	trie.push_back(ReversedTrieNode(trieNode, mismatchingByte));
-	if(trie.size() >= (1<<19)) {
-		trie.clear();
-		trie.push_back(ReversedTrieNode(-1, 0));//a raiz
+	dictionary.push_back(make_pair(buffer.size(), -1));
+	for(int i = dictionary[entry].first; i <= dictionary[entry].second; ++i) 
+		buffer.push_back(buffer[i]);
+	buffer.push_back(mismatchingByte);	
+
+	dictionary.back().second = buffer.size() - 1;
+	
+	if(dictionary.size() >= (1<<19)) {
+		dictionary.resize(1);
+		for(int i = 0; i + nextAvailableBytePos < buffer.size(); ++i) {
+			buffer[i] = buffer[nextAvailableBytePos+i];
+		}
+		buffer.resize(buffer.size()-nextAvailableBytePos);
+		nextAvailableBytePos = 0;
 	}
 }
 

@@ -10,17 +10,12 @@ public:
 	
 	void close();
 private:
-	struct ReversedTrieNode {
-		int parent, label;
-		ReversedTrieNode(){}
-		ReversedTrieNode(int p, int l): parent(p), label(l){}
-	};
-
 	InputBuffer input;	
 
-	list<int> buffer;
+	vector<Byte> buffer;
+	vector<pair<int,int> > dictionary;
 
-	vector<ReversedTrieNode> trie;
+	int nextAvailableBytePos;
 
 	void readToken();
 	int decodeInt();

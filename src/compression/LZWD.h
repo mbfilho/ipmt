@@ -2,7 +2,6 @@
 #define LZWD_H
 #include "InputBuffer.h"
 #include "Decompressor.h"
-#include "HashTable.h"
 
 class LZWD : public Decompressor {
 public:
@@ -11,22 +10,14 @@ public:
 	void close();
 
 private:
-	struct ReversedTrieNode {
-		int parent, label;
-		ReversedTrieNode(){}
-		ReversedTrieNode(int p, int l): parent(p), label(l){}
-	};
-
 	InputBuffer input;	
+	vector<Byte> buffer;
+	vector<pair<int,int> > table;
 
-	list<int> buffer;
+	int nextAvailableByte;
 
-	vector<ReversedTrieNode> revTrie;
-	HashTable* trie;
-
-	int lastNode; //O último nó decodificado. Ele representa um casamento e precisa ser estendido com a letra que ocasionou o mismatch. Mas essa letra só é conhecida na leitura seguinte
+	int lastPos; //O último nó decodificado. Ele representa um casamento e precisa ser estendido com a letra que ocasionou o mismatch. Mas essa letra só é conhecida na leitura seguinte
 	
-	void insertIntoTrie(int parent, Byte arg);
 	void readUncompressedSequence(int size);
 
 	void readToken();

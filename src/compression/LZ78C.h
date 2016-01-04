@@ -15,6 +15,8 @@ private:
 	HashTable* hashTable;
 	int dictionarySize;
 	int currentNode;
+	
+	vector<Byte> sequence;
 
 	void encodeAndWrite(int arg);
 };

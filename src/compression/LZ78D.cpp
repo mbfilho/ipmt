@@ -17,14 +17,23 @@ int LZ78D::readByte() {
 }
 
 void LZ78D::readToken() {
-	int entry = decodeInt(), mismatchingByte = decodeInt();
+	int uncompressedSeqSize = 0;
+	while(!input.getNextBit()) 
+		++uncompressedSeqSize;
+	
+	if(uncompressedSeqSize != 0) {
+		for(int i = 0; i < uncompressedSeqSize; ++i)
+			buffer.push_back(input.getBunchOfBits(8));
+		dictionary.push_back(make_pair(nextAvailableBytePos, buffer.size()-1));	
+	} else {
+		int entry = decodeInt(), mismatchingByte = input.getBunchOfBits(8); 
 
-	dictionary.push_back(make_pair(buffer.size(), -1));
-	for(int i = dictionary[entry].first; i <= dictionary[entry].second; ++i) 
-		buffer.push_back(buffer[i]);
-	buffer.push_back(mismatchingByte);	
+		for(int i = dictionary[entry].first; i <= dictionary[entry].second; ++i) 
+			buffer.push_back(buffer[i]);
+		buffer.push_back(mismatchingByte);	
 
-	dictionary.back().second = buffer.size() - 1;
+		dictionary.push_back(make_pair(nextAvailableBytePos, buffer.size() - 1));
+	}
 	
 	if(dictionary.size() >= (1<<19)) {
 		dictionary.resize(1);

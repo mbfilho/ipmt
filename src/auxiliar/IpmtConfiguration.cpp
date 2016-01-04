@@ -2,7 +2,7 @@
 
 IpmtConfiguration::IpmtConfiguration() {
 	indexType = "suffixtree";
-	compression="none";
+	compression="lzw";
 	countFlag = 0;
 	wb = 1024;
 	wl = 16;

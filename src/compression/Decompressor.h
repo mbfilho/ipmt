@@ -6,11 +6,11 @@ class Decompressor {
 public:
 	Decompressor();
 
-	virtual int readInt(int size);
+	virtual int readBits(int howMany);
 	virtual void close() = 0;
 
 protected:
-	virtual int readByte() = 0;
+	virtual int decompressNextByte() = 0;
 	
 private:
 	ull nextBunchOfBits;

@@ -8,7 +8,7 @@ class DummyDecompressor : public Decompressor {
 public:
 	DummyDecompressor(FILE* inputFile);
 
-	virtual int readByte();
+	virtual int decompressNextByte();
 	void close();
 
 private:

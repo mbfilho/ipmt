@@ -20,6 +20,6 @@ private:
 
 	void readToken();
 	int decodeInt();
-	int readByte();
+	int decompressNextByte();
 };
 #endif

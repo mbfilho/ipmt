@@ -21,7 +21,7 @@ private:
 	int availableBytes;
 	
 
-	int readByte();
+	int decompressNextByte();
 	void readToken();
 };
 

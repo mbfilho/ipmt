@@ -63,12 +63,12 @@ void SuffixTree::serialize(Compressor* compressor) {
 }
 
 void SuffixTree::deserialize(Decompressor* decompressor) {
-	n = decompressor->readInt(32);
+	n = decompressor->readBits(32);
 	int tot = n, percentageToPrint = 0;
 	 
 	char* tmp = new char[n];
 	for(int i = 0; i < n; ++i) {
-		tmp[i] = decompressor->readInt(8);
+		tmp[i] = decompressor->readBits(8);
 		if(i >= percentageToPrint) {
 			printf("\rDescomprimindo string ... %.2lf%% concluído", 100 * double(i) / tot);
 			fflush(stdout);
@@ -80,22 +80,22 @@ void SuffixTree::deserialize(Decompressor* decompressor) {
 	text = tmp;
 	
 
-	int totalOfNodes = decompressor->readInt(32), sizeOfIntegers = SIZE_IN_BITS(int(n-1));
+	int totalOfNodes = decompressor->readBits(32), sizeOfIntegers = SIZE_IN_BITS(int(n-1));
 	nodes.resize(totalOfNodes); 
 	tot = totalOfNodes, percentageToPrint = 0;
 
 	queue<int> queue;
-	int start = decompressor->readInt(sizeOfIntegers), end = decompressor->readInt(sizeOfIntegers), curSize = 1;
+	int start = decompressor->readBits(sizeOfIntegers), end = decompressor->readBits(sizeOfIntegers), curSize = 1;
 	nodes[0] = SuffixTreeNode(start, end);
 	queue.push(0);
 
 	while(!queue.empty()) {
-		bool endOfChildren = decompressor->readInt(1);
+		bool endOfChildren = decompressor->readBits(1);
 		if(endOfChildren)
 			queue.pop();
 		else {
-			start = decompressor->readInt(sizeOfIntegers);
-			end = decompressor->readInt(sizeOfIntegers);
+			start = decompressor->readBits(sizeOfIntegers);
+			end = decompressor->readBits(sizeOfIntegers);
 			nodes[curSize] = SuffixTreeNode(start, end);
 			nodes[queue.front()].addChild(curSize, nodes[curSize]);
 			queue.push(curSize++);

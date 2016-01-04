@@ -10,7 +10,7 @@ void LZ78D::close() {
 	input.close();
 }
 
-int LZ78D::readByte() {
+int LZ78D::decompressNextByte() {
 	if(nextAvailableBytePos == buffer.size())
 		readToken();
 	return buffer[nextAvailableBytePos++];

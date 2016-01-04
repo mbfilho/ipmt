@@ -16,12 +16,12 @@ Decompressor.o: $(comp)/Decompressor.cpp $(comp)/Decompressor.h $(aux)/Global.h
 IpmtConfiguration.o: $(aux)/IpmtConfiguration.cpp $(aux)/IpmtConfiguration.h $(aux)/Global.h
 	g++ -O3 -g -I $(aux) -c $<
 
-SuffixArray.o: $(idx)/SuffixArray.cpp $(idx)/SuffixArray.h $(idx)/Index.h $(aux)/Global.h $(aux)/Printer.h 
+SuffixArray.o: $(idx)/SuffixArray.cpp $(idx)/SuffixArray.h $(idx)/Index.h $(aux)/Global.h $(aux)/Printer.h $(comp)/Compressor.h $(comp)/Decompressor.h
 	g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) -c $<
 
 SuffixTreeNode.o: $(aux)/SuffixTreeNode.cpp $(aux)/SuffixTreeNode.h 
 	g++ -O3  -g -c $< 
-SuffixTree.o: $(idx)/SuffixTree.cpp $(idx)/SuffixTree.h $(aux)/SuffixTreeNode.h 
+SuffixTree.o: $(idx)/SuffixTree.cpp $(idx)/SuffixTree.h $(aux)/SuffixTreeNode.h $(comp)/Compressor.h $(comp)/Decompressor.h
 	g++ -O3 -I $(aux) -I $(comp) -g -c $< 
 
 Printer.o: $(aux)/Printer.cpp $(aux)/Printer.h $(aux)/Global.h

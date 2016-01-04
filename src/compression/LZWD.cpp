@@ -15,7 +15,7 @@ void LZWD::close() {
 	input.close();
 }
 
-int LZWD::readByte() {
+int LZWD::decompressNextByte() {
 	if(nextAvailableBytePos == buffer.size())
 		readToken();
 		

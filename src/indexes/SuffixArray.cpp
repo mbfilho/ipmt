@@ -54,12 +54,12 @@ void SuffixArray::serialize(Compressor* compressor) {
 }
 
 void SuffixArray::deserialize(Decompressor* decompressor) {
-	n = decompressor->readInt(32);
+	n = decompressor->readBits(32);
 	char* tmp = new char[n+1];
 		
 	int tot = n, loaded = 0, percentageToPrint = 0;
 	for(int i = 0; i < n; ++i) {
-		tmp[i] = decompressor->readInt(8);
+		tmp[i] = decompressor->readBits(8);
 		if(percentageToPrint <= i) {
 			printf("\rDescomprimindo string ... %.2lf%% concluído", double(i)/tot * 100);
 			fflush(stdout);
@@ -79,7 +79,7 @@ void SuffixArray::deserialize(Decompressor* decompressor) {
 	int* arrays[] = {suffixArray, lLcp, rLcp};
 	for(int j = 0; j < 3; ++j) {
 		for(int i = 0; i < n; ++i) {
-			arrays[j][i] = decompressor->readInt(sizeOfIntegers);
+			arrays[j][i] = decompressor->readBits(sizeOfIntegers);
 			++loaded;
 			if(percentageToPrint <= loaded) {
 				printf("\rDescomprimindo restante do índice ... %.2lf%% concluído", double(loaded)/tot * 100);

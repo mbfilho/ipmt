@@ -5,15 +5,15 @@ Decompressor::Decompressor() {
 	nextBitsCount = 0;
 }
 
-int Decompressor::readInt(int size) {
-	while(nextBitsCount < size) {
-		int byte = (readByte());
+int Decompressor::readBits(int howMany) {
+	while(nextBitsCount < howMany) {
+		int byte = decompressNextByte();
 		nextBunchOfBits |= ull(byte) << nextBitsCount;
 		nextBitsCount += 8;
 	}
-	int ret = int(nextBunchOfBits & ((1ULL << size) - 1));
-	nextBunchOfBits >>= size;
-	nextBitsCount -= size;
+	int ret = int(nextBunchOfBits & ((1ULL << howMany) - 1));
+	nextBunchOfBits >>= howMany;
+	nextBitsCount -= howMany;
 	
 	return ret;
 }

@@ -1,8 +1,8 @@
 #include "SuffixArray.h"
 
-#define getPair(pos,out) {out[0]=piecesRank[pos],out[1]=(pos+(1<<k)) >= n ? 0 : piecesRank[pos+(1<<k)];}
+#define getPair(pos,out) {out[0]=saDual[pos],out[1]=(pos+(1<<k)) >= n ? 0 : saDual[pos+(1<<k)];}
 SuffixArray::SuffixArray(){
-	piecesRank = NULL;
+	saDual = NULL;
 	suffixArray = NULL;
 	lcp = NULL;
 	count = NULL;
@@ -12,7 +12,7 @@ SuffixArray::SuffixArray(){
 }
 
 SuffixArray::~SuffixArray(){
-	if(piecesRank) delete [] piecesRank;
+	if(saDual) delete [] saDual;
 	if(suffixArray) delete [] suffixArray;	
 	if(lcp) delete [] lcp;
 	if(count) delete [] count;
@@ -97,32 +97,34 @@ void SuffixArray::build(const char* text, size_t size) {
 	this->n = size;
 	this->text = text;	
 
-	piecesRank = new int[size];
+	saDual = new int[size];
 	suffixArray = new int[size];
 
 	count = new int[MAX(256, size)+1];
 	tmp = new int[MAX(256, size)+1];
+	
+	pieces = new Piece[size];
+	auxPieces = new Piece[size];
 
 	buildSuffixArray();
-
+	
 	lcp = count; //para evitar fazer nova alocação
 	count = NULL; //Não vamos mais utilizar count
 
-	//Lembrando que os valores em piecesRank são 1-based	
 	int lastLcp = 0;
 	for(int i = 0; i < n; ++i){
-		if(piecesRank[i] > 1){
-			int j = suffixArray[piecesRank[i]-2];//predecessor do sufixo i
+		if(saDual[i] > 0){
+			int j = suffixArray[saDual[i]-1];//predecessor do sufixo i
 			while(i+lastLcp < n && j + lastLcp < n && text[i+lastLcp] == text[j+lastLcp])
 				++lastLcp;
-			lcp[piecesRank[i]-1] = lastLcp;
+			lcp[saDual[i]] = lastLcp;
 			if(lastLcp>0)
 				--lastLcp;
 		}
 	}
 	
-	lLcp = piecesRank;
-	piecesRank = NULL;
+	lLcp = saDual;
+	saDual = NULL;
 	rLcp = tmp;
 	tmp = NULL;
 	
@@ -163,31 +165,26 @@ void SuffixArray::buildSuffixArray() {
 	for(int i = 0; i < 256; ++i) count[i] = 0;
 	for(int i = 0; i < n; ++i) ++count[128+text[i]];
 	for(int i = 1; i < 256; ++i) count[i] = count[i-1] + (count[i] != 0);
-	for(int i = 0; i < n; ++i){
-		piecesRank[i] = count[128+text[i]];
-	}
 	int tot = 0;
 	while((1<<tot)<=n) ++tot;
 	k = 0;
 	for(int i = 0; i < n; ++i)
-		suffixArray[i] = i;
+		saDual[i] = count[128+text[i]];
 	while((1<<k) <= n){
 		printf("\rFase %d/%d", k,tot), fflush(stdout);
-	
+		
+		for(int i = 0; i < n; ++i) {
+			pieces[i].i = i;
+			pieces[i].p[0] = saDual[i];
+			pieces[i].p[1] = (i + (1<<k) )< n ? saDual[i+(1<<k)] : 0;
+		}
 		sortPieces();
 		
 		int rank = 1;
-		tmp[suffixArray[0]] = 1;
-		
-		int pi[2], pj[2], *plast = pi, *pcur = pj;
-		getPair(suffixArray[0], plast);
+		saDual[pieces[0].i] = rank;
 		for(int i = 1; i < n; ++i) {
-			getPair(suffixArray[i], pcur);
-			tmp[suffixArray[i]] = pcur[1] == plast[1] && pcur[0] == plast[0] ? tmp[suffixArray[i-1]] : ++rank;
-			std::swap(plast, pcur);
+			saDual[pieces[i].i] = (pieces[i].p[0] == pieces[i-1].p[0] && pieces[i].p[1] == pieces[i-1].p[1]) ? saDual[pieces[i-1].i] : ++rank;
 		}
-
-		std::swap(piecesRank, tmp);
 
 		if(rank == n) {
 			printf("\rArray totalmente construído na etapa %d/%d", k, tot);
@@ -196,27 +193,29 @@ void SuffixArray::buildSuffixArray() {
 		++k;
 	}
 	printf("\n");
+
+	for(int i = 0; i < n; ++i) {
+		--saDual[i];
+		suffixArray[saDual[i]] = i;
+	}
 }
 
 void SuffixArray::sortPieces() {
-	int pi[2];
 	for(int d = 1; d >= 0; --d){
 		for(int i =0 ; i <= n; ++i)
 			count[i]=0; 
 
 		for(int i = 0; i < n; ++i){
-			getPair(suffixArray[i], pi);
-			++count[pi[d]];
+			++count[pieces[i].p[d]];
 		}
 
 		for(int i = 1; i <= n; ++i)
 			count[i] += count[i-1];
 
 		for(int i = n - 1; i >= 0; --i){
-			getPair(suffixArray[i], pi);
-			tmp[--count[pi[d]]] = suffixArray[i];
+			auxPieces[--count[pieces[i].p[d]]] = pieces[i];
 		}
-		std::swap(tmp, suffixArray);
+		std::swap(pieces, auxPieces);
 	}
 }
 

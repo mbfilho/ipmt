@@ -4,6 +4,17 @@
 #include "Index.h"
 #include "Global.h"
 #include "Printer.h"
+typedef pair<int,int> pii;
+
+struct Piece {
+	int i, p[2];
+
+	Piece& operator=(const Piece& ot) { 
+		i = ot.i;
+		p[0] = ot.p[0];
+		p[1] = ot.p[1];
+	}
+};
 
 class SuffixArray : public Index {
 public:
@@ -29,8 +40,11 @@ private:
 	pair<int,int> getPair(int pos);
 	int buildLcpArrays(int l, int r);
 	void buildSuffixArray();
-	//O array P^k
-	int *piecesRank; //Dado um índice qual a ordem dele (no passo anterior). No fim das iterações, ele é o dual do array de sufixo.
+	
+	Piece* pieces; //O array de triplas que será repetidamente ordenado
+	Piece *auxPieces; //array auxiliar para a ordenação
+
+	int *saDual; //Dado um índice qual a ordem dele no array de sufixo
 	int k; //O tamanho dos pedaços na construção do array
 	int* suffixArray;
 	int* lcp;

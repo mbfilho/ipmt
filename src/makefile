@@ -4,8 +4,8 @@ comp = compression
 
 genObjFile = g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) -c $<
 
-all: $(idx)/Main.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o HashTable.o LZ77C.o LZ77D.o IpmtConfiguration.o Decompressor.o Global.o
-	g++ -O3 -g -I $(aux) -I $(comp) SuffixArray.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o HashTable.o LZ77C.o LZ77D.o Compressor.o IpmtConfiguration.o  Decompressor.o Global.o $<
+all: Ipmt.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o HashTable.o LZ77C.o LZ77D.o IpmtConfiguration.o Decompressor.o Global.o
+	g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) SuffixArray.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o HashTable.o LZ77C.o LZ77D.o Compressor.o IpmtConfiguration.o  Decompressor.o Global.o $<
 
 Global.o: $(aux)/Global.cpp $(aux)/Global.h
 	$(genObjFile)

@@ -7,6 +7,8 @@ IpmtConfiguration::IpmtConfiguration() {
 	wb = 1024;
 	wl = 16;
 	interrupt = -1;
+	compressionLevel = 1;	
+	isCompressionLevelSet = false;
 }
 
 CompressionAlgorithm IpmtConfiguration::getCompressionAlgorithm() {
@@ -74,6 +76,15 @@ bool IpmtConfiguration::validateConfig(){
 		if(compression != "lz77" && compression != "lz78" && compression != "lzw" && compression != "none") {
 			printf("Algoritmo de compressão não suportado: \'%s\'. Você quis dizer \'lz77\', \'lz78\', \'lzw\' ou \'none\'?\n", compression.c_str());
 			valid = false;
+		}
+
+		if(isCompressionLevelSet) {
+			if(compression != "lz78" && compression != "lzw" ) {
+				printf("Atenção! A opção \'level\' só está disponível para os algoritmos de compressão lz78 e lzw. Ela será, portanto, ignorada.\n");
+			} else if(compressionLevel < 0 || compressionLevel > 2) {
+				printf("Para configurar a eficácia e rapidez da compressão utilize a opção \'level\' com um dos valores:\n* 0 (compressão mais rápida e menos eficaz)\n* 1 (nível moderado de compressão e rapidez)\n* 2 (compressão mais lenta e eficaz)\n");
+				valid = false;
+			}
 		}
 
 		if(textFileName == "") {

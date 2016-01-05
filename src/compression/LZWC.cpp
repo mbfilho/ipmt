@@ -1,6 +1,6 @@
 #include "LZWC.h"
 
-LZWC::LZWC(FILE* output):Compressor(output) {
+LZWC::LZWC(FILE* output, int compressionLevel):Compressor(output) {
 	currentNode = 0;
 	size = 1;
 	hashTable = new HashTable();
@@ -8,6 +8,13 @@ LZWC::LZWC(FILE* output):Compressor(output) {
 		hashTable->put(make_pair(0,i), size);
 		size++;
 	}
+
+	if(compressionLevel == 0) 
+		dictionaryMaxSize = 1 << 16;
+	else if(compressionLevel == 1)
+		dictionaryMaxSize = 1 << 19;
+	else
+		dictionaryMaxSize = 1 << 30; //infinito
 }
 
 void LZWC::feedRawByte(Byte arg) {
@@ -29,7 +36,7 @@ void LZWC::feedRawByte(Byte arg) {
 		//Insere o termo no dicionário	
 		hashTable->put(make_pair(currentNode, arg), size);
 		size++;
-		if(size >= (1<<19)) {
+		if(size >= dictionaryMaxSize) {
 			hashTable->clear();
 			size = 1;
 			for(int i = 0; i < 256; ++i) {

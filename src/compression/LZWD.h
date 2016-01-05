@@ -5,7 +5,7 @@
 
 class LZWD : public Decompressor {
 public:
-	LZWD(FILE* inputFile);
+	LZWD(FILE* inputFile, int compressionLevel);
 	
 	void close();
 
@@ -17,6 +17,8 @@ private:
 	int nextAvailableBytePos;
 
 	pair<int,int> lastSequence;
+	
+	int dictionaryMaxSize;
 
 	void readToken();
 	int decodeInt();

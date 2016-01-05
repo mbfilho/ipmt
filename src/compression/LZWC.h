@@ -5,7 +5,7 @@
 
 class LZWC : public Compressor {
 public:
-	LZWC(FILE* output);
+	LZWC(FILE* output, int compressionLevel);
 
 protected:
 	void feedRawByte(Byte arg);
@@ -24,7 +24,8 @@ private:
 	* no tratamento de colisões dentro da HashTable.
 	*/
 	HashTable* hashTable;
-
+	
+	int dictionaryMaxSize;
 	void encodeAndWrite(int node, int sizeInBits);
 };
 

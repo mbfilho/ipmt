@@ -14,6 +14,7 @@ IpmtConfiguration config;
 #define LZ77_BUFFER 3
 #define LZ77_LOOKA 4
 #define DOT_FILE 5
+#define COMPRESSION_LEVEL 6
 struct option options[] =
 {
 	{"count", no_argument, &config.countFlag, 'c'},
@@ -25,6 +26,7 @@ struct option options[] =
 	{"pattern", required_argument, 0, 'p'},
 	{"interrupt", required_argument, 0, 'i'},
 	{"dotfile", required_argument, 0, DOT_FILE},
+	{"level", required_argument, 0, COMPRESSION_LEVEL},
 	{0, 0, 0, 0}
 };
 
@@ -39,7 +41,10 @@ IpmtConfiguration& parseOptions(int argc, char* argv[]) {
 	
 	    if(c == -1) 
 	    	break;
-		if(c == 'i') {
+		if(c == COMPRESSION_LEVEL) {
+			config.compressionLevel = atoi(optarg);
+			config.isCompressionLevelSet = true;
+		} else if(c == 'i') {
 			config.interrupt = atoi(optarg);
 		} else if(c == DOT_FILE) {
 			config.dotFile = optarg;

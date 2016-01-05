@@ -10,6 +10,9 @@ public:
 	int interrupt; //apenas para teste!
 	
 	string dotFile;
+
+	int compressionLevel;
+	bool isCompressionLevelSet;
 		
 	string indexType;
 	string compression;

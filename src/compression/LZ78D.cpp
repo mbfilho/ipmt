@@ -1,9 +1,16 @@
 #include "LZ78D.h"
 
 
-LZ78D::LZ78D(FILE* inputFile): input(inputFile) {
+LZ78D::LZ78D(FILE* inputFile, int compressionLevel): input(inputFile) {
 	dictionary.push_back(make_pair(1, 0)); //Só para facilitar as contas
 	nextAvailableBytePos = 0;
+
+	if(compressionLevel == 0) 
+		dictionaryMaxSize = 1 << 16;
+	else if(compressionLevel == 1)
+		dictionaryMaxSize = 1 << 19;
+	else
+		dictionaryMaxSize = 1 << 30; //infinito
 }
 
 void LZ78D::close() {
@@ -35,7 +42,7 @@ void LZ78D::readToken() {
 		dictionary.push_back(make_pair(nextAvailableBytePos, buffer.size() - 1));
 	}
 	
-	if(dictionary.size() >= (1<<19)) {
+	if(dictionary.size() >= dictionaryMaxSize) {
 		dictionary.resize(1);
 		for(int i = 0; i + nextAvailableBytePos < buffer.size(); ++i) {
 			buffer[i] = buffer[nextAvailableBytePos+i];

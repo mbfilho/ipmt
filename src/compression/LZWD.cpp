@@ -1,7 +1,7 @@
 #include "LZWD.h"
 
 
-LZWD::LZWD(FILE* inputFile): input(inputFile) {
+LZWD::LZWD(FILE* inputFile, int compressionLevel): input(inputFile) {
 	lastSequence = make_pair(-1,-1);
 	for(int i = 0; i < 256; ++i)
 		buffer.push_back(i);
@@ -9,6 +9,13 @@ LZWD::LZWD(FILE* inputFile): input(inputFile) {
 	for(int i= 0; i < 256; ++i)
 		dictionary.push_back(make_pair(i, i));
 	nextAvailableBytePos = buffer.size();
+
+	if(compressionLevel == 0) 
+		dictionaryMaxSize = 1 << 16;
+	else if(compressionLevel == 1)
+		dictionaryMaxSize = 1 << 19;
+	else
+		dictionaryMaxSize = 1 << 30; //infinito
 }
 
 void LZWD::close() {
@@ -58,7 +65,7 @@ void LZWD::readToken() {
 		lastSequence = dictionary[pos];
 	}
 
-	if(dictionary.size() + 1 >= (1<<19)) {
+	if(dictionary.size() + 1 >= dictionaryMaxSize) {
 		lastSequence = make_pair(-1,1);
 		
 		for(int i = 0; nextAvailableBytePos + i < buffer.size(); ++i){

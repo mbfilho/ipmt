@@ -5,7 +5,7 @@
 
 class LZ78C : public Compressor {
 public:
-	LZ78C(FILE* output);
+	LZ78C(FILE* output, int compressionLevel);
 
 protected:
 	void feedRawByte(Byte arg);
@@ -15,7 +15,8 @@ private:
 	HashTable* hashTable;
 	int dictionarySize;
 	int currentNode;
-	
+	int dictionaryMaxSize;
+		
 	vector<Byte> sequence;
 
 	void encodeAndWrite(int arg);

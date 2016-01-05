@@ -1,9 +1,16 @@
 #include "LZ78C.h"
 
-LZ78C::LZ78C(FILE* output): Compressor(output) {
+LZ78C::LZ78C(FILE* output, int compressionLevel): Compressor(output) {
 	currentNode = 0;
 	dictionarySize = 1;
 	hashTable = new HashTable();
+
+	if(compressionLevel == 0) 
+		dictionaryMaxSize = 1 << 16;
+	else if(compressionLevel == 1)
+		dictionaryMaxSize = 1 << 19;
+	else
+		dictionaryMaxSize = 1 << 30; //infinito
 }
 
 void LZ78C::feedRawByte(Byte arg) {
@@ -31,7 +38,7 @@ void LZ78C::feedRawByte(Byte arg) {
 		hashTable->put(make_pair(currentNode, arg), dictionarySize);
 		++dictionarySize;
 
-		if(dictionarySize >= (1<<19) ) {
+		if(dictionarySize >= dictionaryMaxSize) {
 			currentNode = 0;
 			dictionarySize = 1;
 			hashTable->clear();

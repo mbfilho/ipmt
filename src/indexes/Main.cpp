@@ -40,11 +40,15 @@ Index* loadIndex(IpmtConfiguration& config) {
 		decompressor = new LZ77D(indexFile, wb, wl);	
 		printf("Algoritmo de compressão: LZ77, com buffer %d e lookahead %d.\n", wb, wl);
 	} else if(alg == LZ78) {
-		decompressor = new LZ78D(indexFile);
-		printf("Algoritmo de compressão: LZ78.\n");
+		int level;
+		assert(1 == fread(&level, sizeof(int), 1, indexFile));
+		decompressor = new LZ78D(indexFile, level);
+		printf("Algoritmo de compressão: LZ78 com nível de compressão %d.\n", level);
 	} else if(alg == LZW) {
-		decompressor = new LZWD(indexFile);
-		printf("Algoritmo de compressão: LZW.\n");
+		int level;
+		assert(1 == fread(&level, sizeof(int), 1, indexFile));
+		decompressor = new LZWD(indexFile, level);
+		printf("Algoritmo de compressão: LZW com nível de compressão %d.\n", level);
 	} else if(alg == NONE) {
 		decompressor = new DummyDecompressor(indexFile);
 		printf("Algoritmo de compressão: nenhum.\n");
@@ -85,6 +89,9 @@ void storeIndex(IpmtConfiguration& config, Index* index) {
 		int args[] = {config.wb, config.wl};
 		fwrite(args, sizeof(int), 2, output);
 	}
+	if(alg == LZ78 || alg == LZW) {
+		fwrite(&(config.compressionLevel), sizeof(int), 1, output);
+	}
 
 	Compressor* compressor = NULL;	
 	switch(alg) {
@@ -93,12 +100,12 @@ void storeIndex(IpmtConfiguration& config, Index* index) {
 			printf("Comprimindo índice com o algoritmo LZ77, com buffer = %d e lookahead %d.\n", config.wb, config.wl);
 			break;
 		case LZ78:
-			compressor = new LZ78C(output);
-			printf("Comprimindo índice com o algoritmo LZ78.\n");
+			compressor = new LZ78C(output, config.compressionLevel);
+			printf("Comprimindo índice com o algoritmo LZ78 com nível de compressão %d.\n", config.compressionLevel);
 			break;
 		case LZW:
-			compressor = new LZWC(output);
-			printf("Comprimindo índice com o algoritmo LZW.\n");
+			compressor = new LZWC(output, config.compressionLevel);
+			printf("Comprimindo índice com o algoritmo LZW com nível de compressão %d.\n", config.compressionLevel);
 			break;
 		case NONE:
 			compressor = new DummyCompressor(output);

@@ -6,7 +6,7 @@
 
 class LZ78D : public Decompressor {
 public:
-	LZ78D(FILE* inputFile);
+	LZ78D(FILE* inputFile, int compressionLevel);
 	
 	void close();
 private:
@@ -14,6 +14,8 @@ private:
 
 	vector<Byte> buffer;
 	vector<pair<int,int> > dictionary;
+	
+	int dictionaryMaxSize;
 
 	int nextAvailableBytePos;
 

@@ -1,6 +1,7 @@
 aux = auxiliar
 idx = indexes
 comp = compression
+bench = bench
 
 genObjFile = g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) -c $<
 
@@ -55,8 +56,8 @@ LZ77C.o: $(comp)/LZ77C.cpp $(comp)/LZ77C.h $(aux)/Global.h $(comp)/Compressor.h 
 LZ77D.o: $(comp)/LZ77D.cpp $(comp)/LZ77D.h $(aux)/InputBuffer.h $(comp)/Decompressor.h
 	$(genObjFile)
 
-TestCompression: $(comp)/TestCompression.cpp LZ78C.o $(aux)/Global.h LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o LZ77C.o LZ77D.o HashTable.o Global.o Decompressor.o
-	g++ -O3 -g -I $(aux) -I $(comp) LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o  LZ77C.o Compressor.o  LZ77D.o HashTable.o Global.o Decompressor.o -o comp $<
+TestCompression: $(bench)/TestCompression.cpp LZ78C.o $(aux)/Global.h LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o LZ77C.o LZ77D.o HashTable.o Global.o Decompressor.o
+	g++ -O3 -g -I $(aux) -I $(comp) LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o  LZ77C.o Compressor.o  LZ77D.o HashTable.o Global.o Decompressor.o -o $(bench)/comp $<
 
 clear:
 	rm -f *.o 

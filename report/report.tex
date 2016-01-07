@@ -20,17 +20,6 @@
 
 \section{Implementação}
 
-\subsection{Opções Extras}
-A ferramenta \textit{ipmt} descrita neste relatório possui a interface básica definida na especificação do projeto. Além das opções de linha de comando lá explicitadas, ela possui as seguintes opções:
-\begin{itemize}
-	\item \textbf{-c, -{}-count-only}: A saída é apenas a contagem das ocorrências dos padrões. Como evita operações de entrada e saída, essa opção torna a ferramenta mais eficiente.
-	\item \textbf{-s, -{}-show-alignment}: Aplicável apenas a buscas aproximadas. Exibe \textit{um} alinhamento possível para cada ocorrência dos padrões. Utiliza o algoritmo Sellers.
-	\item \textbf{-a, -{}-algorithm}: Permite ao usuário especificar o algoritmo de busca a ser utilizado. Os valores possíveis são \textbf{u} (Ukkonen), \textbf{se} (Sellers) e \textbf{w} (WuMamber) para buscas aproximadas e \textbf{k} (Kmp), \textbf{sh} (ShiftOr), \textbf{b} (BoyerMoore) e \textbf{a} (AhoCorasick) para buscas exatas.
-\end{itemize}
-
-Nenhuma das configurações acima é obrigatória. As duas primeiras opções são desabilitadas por padrão e a terceira, quando não especificada, tem seu valor escolhido automaticamente pela ferramenta. Essa escolha é feita de acordo com parâmetros considerados relevantes para o desempenho dos algoritmos e determinados através de experimentos (detalhados mais adiante). 
-
-
 \subsection{Decisões de Implementação Relevantes}
 
 \subsubsection{Árvore de Sufixos}
@@ -74,290 +63,33 @@ A operação central do LZ78 é manter um dicionário de cadeias que possibilite
 
 Vimos também que uma tabela \textit{hash} pode servir como dicionário. Um dos problemas desta estrutura, como abordado durante o curso, é que o cálculo do valor \textit{hash} de uma sequência não é, em geral, constante. Isso pode ser contornado se pudéssemos controlar a maneira pela qual o \textit{hash} é gerado como, de fato, podemos. No entanto, não podemos negligenciar outro aspecto importante da tabela \textit{hash}: a resolução de colisões. Caso uma mesma posição da tabela contivesse mais de um elemento, teríamos que comparar as \textit{chaves} de cada um deles para saber qual é o desejado. Ou seja, teríamos que comparar sequências\footnote{Alternativamente poderíamos adotar uma estratégia de \textit{double} ou \textit{triple} \textit{hash}, por exemplo. Mas em algum momento teríamos que ou comparar sequências ou admitir que colisões não aconteceriam.}.
 
+Na nossa implementação decidimos utilizar uma abordagem mista. Conceitualmente trabalhamos com uma \textit{trie}, mas a implementamos com uma tabela \textit{hash}. Dessa forma, representamos as arestas da \textit{trie} através de pares \textit{(nó, byte)} em que \textit{nó} é um vértice da \textit{trie} e \textit{byte} é um elemento do alfabeto. A vantagem dessa indexação é que o cálculo do \textit{hash} é feito de maneira constante e a resolução de colisões não é encarecida.
 
-\subsection{Estratégia de Combinação de Algoritmos para Busca Exata}
-Através dos testes realizados pudemos concluir que o algoritmo \textit{Boyer-Moore} tem o melhor desempenho para padrões \textit{maiores}, sendo isso ainda mais perceptível quando textos \textit{grandes} ($>$ 500MB) são utilizados. No entanto, ele possui uma perda significativa de desempenho quando padrões e alfabetos pequenos são utilizados. De maneira geral, um alfabeto pequeno representa um desafio para a maioria dos algoritmos implementados porque aumenta a quantidade de casamentos parciais. No entanto, esse parâmetro exerce maior influência sobre o \textit{BoyerMoore} porque tende a aproximá-lo de seu pior caso, o qual é equivalente ao da força bruta. Por outro lado, consideramos que os cenários capazes de explorar essa característica do \textit{BoyerMoore} não são comuns. Além disso, toda a informação que temos sobre o alfabeto é aquela inferida através do padrão, de modo que não vale a pena sermos muito restritivos a respeito desse parâmetro sob pena de não tirarmos proveito da eficiência do \textit{BoyerMoore}.
+Uma desvantagem dessa estratégia é que ela sofre com o crescimento do dicionário do LZ78. Esse crescimento aumenta a ocorrência de colisões na tabela \textit{hash} e acaba encarecendo suas operações. Para lidar com isso limpamos completamente o dicionário quando ele chega a determinado tamanho. Naturalmente que quanto menor for o tamanho máximo do dicionário mais rápido e menos eficaz o algoritmo será. Ou seja, esse compromisso entre rapidez e qualidade de compressão precisa ser observado. Por isso, criamos a opção \textit{level} que influecia o tamanho máximo do dicionário e é fornecida através da linha de comando. O padrão é limitar o tamanho do dicionário em metade do tamanho da tabela \textit{hash}.
 
-Existem três situações em que procuramos evitar o uso do \textit{BoyerMoore}. A primeira delas é quando buscamos mais de um padrão simultaneamente. Nesse caso, fazemos uso do \textit{AhoCorasick}. A segunda, como mencionamos, é quando o usuário fornece um padrão pequeno. Nessa situação utilizamos a força bruta para padrões unitários e o \textit{ShiftOr} para demais padrões pequenos. O terceiro caso em que evitamos o uso do \textit{BoyerMoore} está relacionado ao tamanho do alfabeto do padrão. Evitamos o \textit{BoyerMoore} quando avaliamos que o alfabeto do padrão é pequeno e o tamanho do padrão é no máximo 64. Nesse caso nós utilizamos nossa implementação mais rápida do \textit{ShiftOr}, que chamamos de \textit{ShiftOr2}. Ela tem um suporte limitado ao tamanho do padrão porque armazena as máscaras usadas pelo algoritmo em inteiros de 64 \textit{bits}. A nossa implementação do \textit{ShiftOr} com suporte a qualquer tamanho de padrão possui um desempenho consideravelmente pior.
+Ressaltamos que o algoritmo de descompressão armazena o dicionário como um vetor, uma vez que não é necessário casar uma sequência nesse caso.
 
-Resumimos a estratégia de combinação de algoritmos para busca exata a seguir:
+Outra decisão relevante que tomamos foi a de escolher não comprimir uma sequência quando isso não for vantajoso. Ou seja, se a codificação da tupla emitida pelo LZ78 for mais longa que a da codificação da sequência que ela representa, então o algoritmo emite a sequência descomprimida. Para viabilizar esse comportamento precedemos cada tupla com um \textit{bit} 1 e cada sequência descomprimida de tamanho $x$ com $x$ \textit{bits} 0 e um \textit{bit} 1. Verificamos que isso trouxe uma melhora à qualidade de compressão do algoritmo.
 
-\begin{itemize}
-	\item Se mais de um padrão é fornecido, usamos o \textit{AhoCorasick},
-\end{itemize}
-\textit{Seja $m$ o tamanho do padrão a ser procurado e $\alpha$ o tamanho do alfabeto do padrão.}
-\begin{itemize}
-	\item Se $m = 1$ usamos o algoritmo de força bruta,
-	\item Se $m \leq 64$ e $\alpha \leq 5$ usamos o \textit{ShiftOr}, \textit{(Note que isso é sempre verdade se $m \leq 5$.)}
-	\item Caso contrário: usamos o \textit{BoyerMoore}
-\end{itemize}
+Por fim, os inteiros emitidos pelo LZ78 têm tamanho variável e, por isso, precisam ser codificados. A codificação $C(x)$ de um inteiro com representação binária $x$ é a seguinte cadeia: $|t|_1 + 0 + |x| + x$, em que $t = |x|$. Ou seja, precedemos $x$ com o seu tamanho, um \textit{bit} 0 de marcação e o tamanho \textit{do tamanho de $x$} em unário. Dessa forma $|C(x)| = O(\log\log(|x|) + 1 + \log(|x|) + |x|)$. Essa codificação nos pareceu estar mais alinhada com nossa estratégia geral de evitar lidar com \textit{bits} individualmente.
 
-\subsection{Estratégia de Combinação de Algoritmos para Busca Aproximada}
+\subsubsection{LZW}
 
-No caso da busca aproximada, nossa estratégia de combinação de algoritmos teve como principal objetivo utilizar o algoritmo \textit{Ukkonen} sempre que possível. Devido à construção do autômato, o \textit{Ukkonen} tem um tempo de preprocessamento bastante elevado quando comparado aos demais. No entanto, seu processamento do texto é bastante eficiente e, quando esse texto é suficientemente grande, o tempo de preprocessamento pode ser compensado.
+O LZW é uma variação do LZ78 na qual o dicionário é inicialmente preenchido com todos os caracteres do alfabeto. Com isso, quando uma sequência $Xa$ não está no dicionário, o algoritmo emite apenas o índice de $X$ ao invés do par $(X,a)$ emitido pelo LZ78.
 
-Como o crescimento do número de estados do autômato é exponencial, precisamos ter muita atenção aos parâmetros que o influenciam. No entanto, fazemos uma consideração semelhante a que fizemos em relação ao \textit{BoyerMoore}. Ou seja, acreditamos que as restrições que fizemos são suficientes para impedir casos ruins em geral, embora eles ainda possam acontecer. De maneira geral, usamos o \textit{Ukkonen} quando o padrão é pequeno ou quando ele é razoavelmente grande mas o erro máximo é pequeno.
+Ressaltamos que todas as decisões de implementação do LZ78, tanto na compressão quanto na descompressão, se aplicam à nossa implementação do LZW.
 
-Quando decidirmos não utilizar o \textit{Ukkonen}, precisamos escolher entre os algoritmos \textit{Sellers} e \textit{WuMamber}. O algoritmo \textit{Sellers} é influenciado apenas pelo tamanho do padrão, enquanto que o \textit{WuMamber} apenas pelo erro máximo. De maneira geral, identificamos que o \textit{WuMamber} é cerca de duas vezes mais rápido que o \textit{Sellers} quando esses parâmetros são semelhantes. Por isso, utilizamos o \textit{WuMamber} quando o tamanho do padrão é pelo menos metade do erro máximo e o tamanho do padrão é no máximo 64 (pelas mesmas razões do \textit{ShiftOr}). Para os demais casos utilizamos o \textit{Sellers}.
+\subsubsection{LZ77}
 
-Ressaltamos que apenas a nossa implementação do \textit{Sellers} suporta a reconstrução de alinhamentos. Por isso ele é o algoritmo utilizado sempre que o usuário escolhe essa opção.
+Uma das operações mais caras do LZ77 é a busca de um casamento de um prefixo da janela de pré-visualização (\textit{lookahead}) na janela de texto já processado (\textit{buffer}). Nossa primeira estratégia foi utilizar o \textit{KMP}, recalculando a função de falha para o \textit{lookahead} e percorrendo o \textit{buffer} linearmente. Ela, no entanto, ainda deixava a operação de busca muito cara.
 
-Se mais de um padrão é fornecido, a escolha do algoritmo é feita individualmente.
+A estratégia implementada armazena a janela de \textit{buffer} em uma árvore binária de busca. Na árvore guardamos os índices contidos na janela de \textit{buffer} e os comparamos através das cadeias que se iniciam neles. Ou seja, \textit{conceitualmente} cada nó da árvore armazena um sufixo da janela de \textit{buffer} com no máximo o tamanho da janela de \textit{lookahead}. 
 
-Resumimos a estratégia de utilização dos algoritmos para busca aproximada abaixo.
+Para encontrar o maior casamento para um prefixo da janela de \textit{lookahead} nós começamos na raiz da árvore. Em cada nó que visitamos calculamos o maior prefixo comum entre a janela de \textit{lookahead} e a cadeia armazenada no vértice corrente. Esse pode ser a resposta. Para tentar encontrar um prefixo maior nos baseamos em se a cadeia do vértice é maior ou menor (lexicograficamente) que a janela de \textit{lookahead}. Se ela for maior, então precisamos buscar cadeias menores e, portanto, continuamos com a subárvore à esquerda. Caso contrário vamos para a subárvore à direita.
 
-\textit{Seja $m$ o tamanho do padrão a ser procurado, $e_{max}$ o erro máximo e $T$ o tamanho total em bytes do(s) arquivo(s) de texto(s).}
+Interrompemos a busca sempre que o maior prefixo comum for igual à própria janela de \textit{lookahead} ou quando tentarmos visitar uma subárvore vazia. Se $wb$ é o tamanho da janela de \textit{buffer} e $wl$ o da de \textit{lookahead}, o custo deste procedimento é $O(wl\log(wb))$ se a árvore for balanceada. Além disso, quando deslizamos a janela em $j$ posições, temos que fazer $j$ remoções na árvore e mais $j$ inserções, com o custo total de $O(j\cdot wl\cdot \log(wb))$.
 
-\begin{itemize}
-	\item Se $T > 100$MB e ($m < 20$ ou $(m < 70$ e $e_{max} \leq 5)$ ou $(m < 100$ e $e_{max} \leq 3)$) usamos o \textit{Ukkonen},
-	\item Se $(e_{max}/2) < m \leq 64$ usamos o \textit{WuMamber},
-	\item Caso contrário usamos o \textit{Sellers}
-\end{itemize}
+A árvore que utilizamos foi a \textit{treap}\footnote{https://en.wikipedia.org/wiki/Treap}. Ela é uma árvore balanceada com \textit{alta probabilidade}. Um dos atrativos para seu emprego no nosso projeto é sua facilidade de implementação e verificação de corretude.
 
-\subsection{Estruturas de Dados e Outras Decisões Relevantes}
-
-A seguir fazemos um breve registro de algumas decisões de implementação que tiverem impacto relevante no desempenho geral da ferramenta.
-
-\begin{itemize}
-	\item \textbf{Lista de padrões no autômato do AhoCorasick}. Implementamos uma lista duplamente ligada\footnote{Ver \textit{src/auxiliar/AhoList.\{h,cpp\}}} de modo a permitir a operação de concatenação exigida pelo algoritmo em tempo $O(1)$.
-
-	\item \textbf{Árvore ternária de colunas e autômato do Ukkonen}. Cada uma das folhas dessa árvore representa uma coluna da matriz de PD. No entanto, armazenamos essas folhas em separado, aproveitando-as como nós do autômato. Dessa maneira, diminuimos o tamanho total da árvore e evitamos colocar em todos os nós informações pertinentes apenas às folhas. Procuramos, com isso, economizar memória.\footnote{Ver \textit{src/auxiliar/UkkonenTreeNode.\{h,cpp\}} e \textit{src/auxiliar/UkkonenAutomatonNode.\{h,cpp\}.}}
-
-	\item \textbf{Leitura da entrada}. Os arquivos que contém os textos a serem analizados são processados em blocos de 16MB. Verificamos que um tamanho menor de bloco aumenta consideravelmente o tempo de execução da ferramenta, enquanto que um valor maior não traz maiores ganhos.
-
-	\item \textbf{Determinação do alfabeto}. O alfabeto é definido como o conjunto das letras dos padrões mais um símbolo que não ocorre em nenhum deles (caracter nulo, ASCII 0). Dessa forma, os caracteres ASCII são mapeados nesses valores, em particular, todo caracter que não ocorre no padrão é mapeado para o caracter nulo. Essa estratégia favorece os algoritmos que dependem \textit{diretamente} do alfabeto, como o \textit{AhoCorasick} e o \textit{Ukkonen}.
-
-	\item \textbf{Reconstrução de alinhamento}. Para possibilitar ao algoritmo \SE reconstruir os alinhamentos das ocorrências encontradas armazenamos apenas as $(m+e_{max})$ últimas colunas da matriz de programação dinâmica. Com isso a opção de imprimir os alinhamentos não causa grande impacto no consumo de memória da aplicação. Quando essa opção está desligada, utilizamos uma implementação do \SE que armazena apenas as 2 últimas colunas.
-\end{itemize}
-
-\section{Testes e Resultados}
-
-Todos os testes conduzidos, tanto da ferramenta de modo geral quanto dos algoritmos individualmente, foram controlados por \textit{scripts} escritos em \textit{python}. A função desses \textit{scripts} era a de invocar aplicações através da linha de comando com parâmetros adequados, armazenar e manipular os resultados. A principal métrica utilizada foi a média dos tempos de execução. Os tempos em si foram coletados a partir do tempo \textit{real} de execução fornecido pela ferramenta \textit{time} do \textit{Linux}. A ferramenta \textit{gnuplot} foi utilizada para que os dados pudessem ser visualizados e comparados graficamente.
-
-Os testes que serão descritos a seguir foram conduzidos em um computador com sistema operacional \textit{Ubuntu 14.04}, 4GB de memória \textit{RAM} e processador \textit{Intel Core} i5 2.53 GHz.
-
-\subsection{Testes para Escolha dos Algoritmos de Busca Exata}
-Para escolher quais algoritmos seriam utilizados na busca exata e em quais situações, vários testes foram realizados com diferentes configurações de padrões e textos. Em todos eles, os algoritmos tinham como saída apenas a quantidade de ocorrências dos padrões. Para fins de comparação, incluímos também a ferramenta \textit{grep} nos testes. Para que ela tivesse saída compatível com os demais algoritmos nós a executamos da seguinte maneira: \textit{grep -e pattern -o -F text-file $\vert$ wc -l}. Esse comando resulta na contagem da quantidade de ocorrências encontradas. Desse modo, os testes também serviram para identificar erros de implementação.
-
-Durante os testes duas implementações do \textit{ShiftOr} foram executadas. A que chamamos de \textit{ShiftOr2} suporta apenas padrões de tamanho até 64, pois utiliza inteiros de 64 \textit{bits} como máscaras. Já a que chamamos simplesmente de \textit{ShiftOr} é geral e suporta padrões de todos os tamanhos.
-
-\subsubsection{Teste 1: Texto em inglês e padrões de tamanhos variados}
-
-No primeiro teste, nós utilizamos um arquivo de texto de 1.1GB\footnote{Disponível em \textit{http://pizzachili.dcc.uchile.cl/texts/nlang/english.1024MB.gz}.}\textsuperscript{,}\footnote{O arquivo original continha um caracter nulo no meio do texto. Nós o retiramos para evitar comportamentos estranhos que interferissem nos testes.} e padrões com tamanhos entre 1 e 90. Tanto o texto quanto os padrões estavam em inglês. A \figref{fig:e2} registra o resultado desse teste, mostrando, para cada algoritmo, o tempo médio de execução em função do tamanho do padrão.
-
-\begin{figure}[h]
-	{\centering Resultado do Teste 1\par}
-	\includegraphics{tests/t3Exact}
-\caption{Cada algoritmo foi individualmente testado com um texto em inglês de 1.1G. Foram procurados padrões com tamanhos entre 1 e 90. A ferramenta \textit{grep} também foi executada.}
-\label{fig:e2}
-\end{figure}
-
-Constatamos que o algoritmo \textit{ShiftOr} generalizado não consegue bons resultados. Em particular, quando o tamanho do padrão é maior que de 64 torna-se necessário mais de 1 inteiro para representar cada máscara utilizada pelo algoritmo. Isso tem um impacto perceptível no tempo de execução do \textit{ShiftOr}. 
-
-O \textit{Kmp} mostra-se relativamente estável, com tempos de execução em torno de 4 segundos. O \textit{BoyerMoore}, por sua vez, se torna bastante eficiente para padrões maiores. 
-
-A seguir, na \figref{fig:e3}, nós restringimos o gráfico da \figref{fig:e2} a padrões com tamanho até 15. Dessa forma podemos obter uma melhor visualização desses casos.
-
-\begin{figure}[h]
-	{\centering Resultado do Teste 1: Padrões de Tamanho até 15\par}
-	\includegraphics{tests/t3Exact2}
-\caption{O mesmo teste, mas com padrões de tamanho até 15.}
-\label{fig:e3}
-\end{figure}
-
-A \figref{fig:e3} sugere que o \textit{BoyerMoore} é o mais eficiente com padrões de tamanho pelo menos igual a 4. Com padrões menores os demais algoritmos possuem tempo de execução simulares, com exeção do \textit{ShiftOr} generalizado. Cortamos os resultados do \textit{grep} para padrões com tamanho inferior a 4 porque o tempo de execução era muito alto e dificultava a visualização do gráfico.
-
-Ainda utilizando o mesmo arquivo de texto, experimentamos padrões ainda maiores para testar se o comportamento dos algoritmos se mantinha dentro do esperado. Para isso, no entanto, excluímos o algoritmo \textit{ShiftOr}, por ser muito lento e também o \textit{ShiftOr2}, por não suportar o tamanho dos padrões. O resultado pode ser visto na \figref{fig:e4}.
-
-\begin{figure}[h]
-	{\centering Resultado do Teste 1: Padrões Maiores\par}
-	\includegraphics{tests/t4Exact}
-\caption{Padrões maiores foram buscados no mesmo arquivo de texto do teste anterior. Esses padrões eram frases em inglês.}
-\label{fig:e4}
-\end{figure}
-
-Quando comparamos os tempos de execução registrados nos gráficos das Figuras \ref{fig:e2} e \ref{fig:e3} com os da \figref{fig:e4}, percebemos que tanto o \textit{Kmp} quanto o \textit{BoyerMoore} mantiveram-se praticamente estáveis. O \textit{BoyerMoore}, portanto, continuou a mostrar-se superior ao lidar com padrões maiores.
-
-\subsubsection{Teste 2: Texto e Padrões Aleatórios e Alfabetos de Tamanhos Variados}
-Para encerrar os testes com algoritmos para busca exata, nós investigamos textos e padrões uniformemente gerados e com alfabetos de diferentes tamanhos. Nosso principal objetivo era definir a estratégia para lidar com padrões pequenos, uma vez que já estávamos convencidos de que o \textit{BoyerMoore} tratava eficientemente os maiores.
-
-Realizamos dois testes com características similares. Procuramos padrões uniformemente gerados com tamanhos entre 1 e 20 em um arquivo de texto de 1.5GB também uniformemente gerado. Utilizamos alfabetos de tamanho 5 (primeiro teste) e 10 (segundo teste). Os resultados estão registrados nas Figuras \ref{fig:e5} e \ref{fig:e6}. Excluímos o algoritmo \textit{ShiftOr} generalizado dos testes e, no primeiro teste, também a ferramenta \textit{grep}. Ela apresentou alguns tempos bastante elevados e dificultaria a visualização gráfica dos resultados.
-
-\begin{figure}[h]
-	{\centering Resultado do Teste 2: Alfabeto de Tamanho 5\par}
-	\includegraphics{tests/t6Exact}
-\caption{Teste feito buscando-se padrões uniformemente gerados em um arquivo também uniformemente gerado de 1.5GB. O alfabeto utilizado tem tamanho 5.}
-\label{fig:e5}
-\end{figure}
-
-\begin{figure}[h]
-	{\centering Resultado do Teste 2: Alfabeto de Tamanho 10\par}
-	\includegraphics{tests/t8Exact}
-\caption{Teste feito buscando-se padrões uniformemente gerados em um arquivo também uniformemente gerado de 1.5GB. O alfabeto utilizado tem tamanho 10.}
-\label{fig:e6}
-\end{figure}
-
-
-Comparando-se os gráficos da \figref{fig:e5} com o da \figref{fig:e3} percebemos que o \textit{Kmp} e o \textit{BoyerMoore} quase dobraram seus tempos de execução. Em parte, isso poderia ser justificado pelo aumento do tamanho do arquivo (de 1.1GB para 1.5GB). No entanto, note que, por exemplo, o \textit{ShiftOr2} manteve seu tempo de execução praticamente inalterado. Por isso, concluímos que essa perda considerável de desempenho é causada, principalmente, pela diminuição do tamanho do alfabeto. Pudemos confirmar isso ao observar o teste registrado na \figref{fig:e6}, em que os algoritmos foram alimentados com um arquivo de mesmo tamanho (1.5GB), mas gerado a partir de um alfabeto (duas vezes) maior. Novamente essa variação no tamanho do alfabeto não teve influência no \textit{ShiftOr2}, como era esperado\footnote{Isso é verdade porque estamos apenas contando as ocorrências. Se elas fossem reportadas, naturalmente \textit{todo} algoritmo seria afetado pela diminuição do alfabeto.}.
-
-Ainda assim, verificamos que, em ambos os cenários, o \textit{BoyerMoore} é bastante eficiente para padrões maiores. O \textit{ShiftOr2}, por sua vez, se mostrou estável, apresentando bom desempenho onde o \textit{BoyerMoore} e o \textit{Kmp} aumentaram seus tempos de execução. 
-
-Notamos que a ferramenta \textit{grep} também tem seu desempenho bastante afetado pela diminuição do alfabeto. Tanto que tivemos que remover alguns de seus resultados para não comprometer a visualização do gráfico. No entanto, ressaltamos que essa comparação não é completamente justa porque o \textit{grep} sempre imprime as ocorrências dos padrões, enquanto nossos algoritmos apenas imprimem a quantidade dessas ocorrências. Ainda assim, o \textit{grep} tem um desempenho muito bom e estável para padrões maiores.
-
-\subsubsection{Conclusões}
-
-Com os testes que apresentamos nessa seção, pudemos tirar as seguintes conclusões:
-\begin{itemize}
-	\item O tempo de execução para padrões muito pequenos é bastante variável. Claro que, para padrões unitários, nenhum algoritmo faz menos operações que o força bruta. Para padrões até tamanho 5 percebemos que o \textit{ShiftOr2} é bastante estável e eficiente, mesmo em diferentes cenários.
-	
-	\item A partir de padrões de tamanho 5 o \textit{BoyerMoore} é, em geral, mais eficiente. Vimos cenários em que o \textit{ShiftOr2} teve tempo de execução compatível com o \textit{BoyerMoore} mesmo para padrões maiores. Mas mesmo nesses casos a diferença foi pouca, de modo que parece ser melhor escolher o \textit{BoyerMoore} como o algoritmo para padrões grandes.
-	
-	\item Vimos, no entanto, que não só o tamanho do padrão importa. Também o tamanho do alfabeto e o número de ocorrências e casamentos parciais influencia o \textit{Kmp} e o \textit{BoyerMoore}. De modo geral, não podemos prever esses cenários sem conhecer o alfabeto do texto. Podemos, no entanto, utilizar o tamanho do alfabeto do \textit{padrão} como heurística para ajudar a determinar quando `desistir' de usar o \textit{BoyerMoore}. Isso não é ideal, uma vez que não leva em conta a heurística do mau caracter, a qual pode aumentar bastante o desempenho do algoritmo mesmo para um alfabeto pequeno. Além disso, vimos que, nos casos em que o \textit{BoyerMoore} é afetado pelo tamanho do alfabeto, apenas o \textit{ShiftOr2} é uma opção a ser considerada. Por essa razão, vamos desistir do \textit{BoyerMoore} em função do tamanho do alfabeto \textit{somente se} o tamanho do padrão for suportado pelo \textit{ShiftOr2} ($\leq$ 64). Com isso, naturalmente, não evitamos todos os cenários ruins do \textit{BoyerMoore}, nem o seu pior caso, em particular. No entanto, consideramos que cobrimos os cenários mais comuns e menos artificiais.
-\end{itemize}
-
-\subsection{Testes para Escolha dos Algoritmos de Busca Aproximada}
-
-De maneira semelhante ao caso da busca exata, realizamos testes variados para determinar quais algoritmos utilizar e em quais situações. Para isso consideramos implementações dos algoritmos \W, \U e \SE.
-
-Preparamos três cenários para comparar os algoritmos. Neles procuramos forçar o pior caso de todos os algoritmos, utilizando padrões de todos os tamanhos $m \in [1..20]$ e erro máximo $e = m - 1$. Em cada teste utilizamos um arquivo com texto em inglês (100MB no primeiro, 500MB no segundo e 1.1GB no terceiro). Apresentamos os resultados nas Figuras \ref{fig:a1}, \ref{fig:a2} e \ref{fig:a3} a seguir.
-
-\begin{figure}[h]
-	{\centering Texto de 100MB\par}
-	\includegraphics{tests/t1Appr}
-\caption{Texto em inglês de 100MB. Para cada tamanho $m$ do padrão, o erro máximo foi definido como $m-1$.}
-\label{fig:a1}
-\end{figure}
-
-\begin{figure}[h]
-	{\centering Texto de 500MB\par}
-	\includegraphics{tests/t2Appr}
-\caption{Texto em inglês de 500MB. Para cada tamanho $m$ do padrão, o erro máximo foi definido como $m-1$.}
-\label{fig:a2}
-\end{figure}
-
-\begin{figure}[h]
-	{\centering Texto de 1.1GB\par}
-	\includegraphics{tests/t3Appr}
-\caption{Texto em inglês de 1.1GB. Para cada tamanho $m$ do padrão, o erro máximo foi definido como $m-1$.}
-\label{fig:a3}
-\end{figure}
-
-A partir desses cenários pudemos perceber claramente o comportamento linear dos algoritmos \W e \SE, bem como o comportamento exponencial do \U. Pudemos perceber também que, de maneira geral, quando o arquivo de texto é grande, o preprocessamento pesado feito pelo \U é compensado pela leitura rápida do texto. No entanto, existe sempre um ponto em que o tempo de execução do \U `explode'. Antes desse ponto, vemos que o \U é muito eficiente, considerando que os testes exploram casos ruins dos três algoritmos. 
-
-Outro ponto importante a ser percebido é que o \SE tem quase o dobro do tempo de execução quando comparado com o \W. Ou seja, o tempo de execução do \SE para um padrão de tamanho $m$ é similar ao tempo de execução do \W com erro máximo $2m$.
-
-Nos testes realizamos, o \U deu um salto no tempo de execução com padrões de tamanho em torno de 20. Na prática, padrões maiores podem ser suportados desde que o erro máximo e o tamanho do alfabeto não sejam muito grandes.
-
-\subsubsection{Conclusões}
-Com os testes apresentados e outros similares que não registramos aqui, pudemos chegar às seguintes conclusões:
-
-\begin{itemize}
-	\item O algoritmo \U é bastante eficiente para arquivos grandes, desde que utilizado para com um tamanho de padrão e erro máximo que não provoque uma `explosão' do número de estados do autômato.
-
-	\item O algoritmo \W é mais eficiente do que o \SE para parâmetros semelhantes
-
-	\item A busca aproximada é consideravelmente mais custosa que a busca exata. Em particular, não conseguimos uma implementação razoável para o algoritmo \W \textit{generalizado}, isto é, com suporte a qualquer tamanho de padrão.
-\end{itemize}
-
-
-\subsection{Teste da Ferramenta}
-
-Nessa seção vamos apresentar alguns testes feitos com a ferramenta em si, quando não especificamos qual algoritmo deve ser utilizado. O ambiente de execução continua o mesmo que já descrevemos.
-
-\subsubsection{Teste 1: Múltiplos Padrões}
-
-O primeiro teste consiste em fornecer à ferramenta vários padrões (através da opção \textit{-p}). Separamos esses padrões em três arquivos: 
-	\begin{itemize}
-		\item \textbf{p1}: Arquivo contendo padrões com muitas ocorrências no texto,
-		\item \textbf{p2}: Arquivo contendo padrões com poucas ocorrências no texto,
-		\item \textbf{p3}: Arquivo grande contendo muitos padrões.
-	\end{itemize}
-
-No primeiro teste procuramos cada um desses arquivos de padrões em um texto na língua inglesa com 1GB. Testamos nossa ferramenta de duas maneiras diferentes: com a \textit{flag} -c ligada e desligada. Além disso, incluímos no teste também a ferramenta \textit{grep}, também de duas maneiras. Na primeira, utilizamos o comportamento padrão da imprimir as ocorrências e depois contamos o número de linhas impressas (comando: \textit{grep -o -f pattern-file text-file | wc -l}). A segunda maneira foi utilizar a \textit{flag} -c da ferramenta \textit{grep} para impedir que ela imprimisse ocorrências. Essa \textit{flag}, no entanto, não conta extamente o que queremos. Ela contabiliza o número de \textit{linhas} em que \textit{alguma} ocorrência foi encontrada. Apenas usamos o resultado dessa chamada como referência. O resultado desse teste é apresentado a seguir.
-
-\begin{table}[]
-\centering
-\caption{Resultado do Teste 1}
-\label{tab:aho1}
-\begin{tabular}{|c|c|c|c|c|c|c|}
-\hline
-Arquivo & \begin{tabular}[c]{@{}c@{}}N. de\\ ocorrências\end{tabular} & \textbf{\begin{tabular}[c]{@{}c@{}}pmt -c\\ (tempo)\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}pmt\\ (tempo)\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}grep\\ (tempo)\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}grep -c\\ (tempo)\end{tabular}} \\ \hline
-\textbf{p1} & $~2.10^8$ & 25s & 1min 40s & \textgreater 5min & 14s \\ \hline
-\textbf{p2} & $~10^4$ & 24s & 25s & 13s & 13s \\ \hline
-\textbf{p3} & $~2.10^5$ & 22s & 20s & \textgreater 5min & \textgreater5min \\ \hline
-\end{tabular}
-{\par\small \textit{Resultado da busca de cada um dos padrões em p1, p2 e p3 em um arquivo de texto com 1GB. p1 e p2 continham 23 padrões e p3 continha 10000.}\par}
-\end{table}
-
-Nesse teste, os aquivos p1 e p2 tinham 23 padrões e menos de 300 \textit{bytes} cada. Já o arquivo p3 tinha 10000 padrões e 1MB.
-
-Observamos que a quantidade de padrões e o tamanho total deles não tem grande influência quando apenas contamos as ocorrências. Isso já era esperado porque nesse caso utilizamos o algoritmo \textit{AhoCorasick}. Esse algoritmo, por sua vez, só depende dos padrões para uma etapa de preprocessamento (de custo linear), a qual é compensada pelo processamento eficiente do texto. Naturalmente que quando a ferramenta imprime as ocorrências encontradas o tempo de execução é superior. Mas note que, ainda assim, o desempenho da ferramenta só foi sensivelmente degradado quando uma quantidade muito grande de ocorrências teve que ser impressa (mais de $10^8$).
-
-\subsubsection{Teste 2: Busca Exata de um Único Padrão}
-
-Como primeiro teste, executamos a ferramenta \textit{pmt} no modo apenas de contagem (\textit{flag} -c) para procurar padrões de variados tamanhos em um texto na língua inglesa com 1.1GB. O resultado é mostrado na \figref{fig:pmtE1} a seguir.
-
-\begin{figure}[h]
-	{\centering Resultado do Teste 2\par}
-	\includegraphics{tests/pmtE1}
-\caption{Vários padrões com tamanho entre 1 e 90 foram procurados em um texto de 1.1GB. Tanto o texto quanto os padrões estavam na língua inglesa.}
-\label{fig:pmtE1}
-\end{figure}
-
-Nesse teste percebemos que nossa ferramenta consegue manter um bom comportamento mesmo com padrões pequenos. Com padrões maiores ela se aproxima do desempenho do \textit{grep}. Os resultados do \textit{grep} estavam acima dos 30 segundos para padrões pequenos. Apenas para não prejudicar a visualização do gráfico nós diminuimos esses valores.
-
-Em seguida, repetimos o teste preliminar que fizemos para investigar o impacto do tamanho do alfabeto nos algoritmos. O resultado pode ser visto na \figref{fig:pmtE2} a seguir.
-
-\begin{figure}[h]
-	{\centering Resultado do Teste 2: Alfabeto de Tamanho 10\par}
-	\includegraphics{tests/pmtE1}
-\caption{Vários padrões com tamanho entre 1 e 20 foram procurados em um texto de 1.5GB. Tanto o texto quanto os padrões foram gerados aleatoriamente.}
-\label{fig:pmtE2}
-\end{figure}
-
-Nesse teste nós utilizamos um arquivo de texto com 1.5GB gerado uniformemente a partir de um alfabeto de tamanho 10. Note que, comparado com a \figref{fig:pmtE1} nossa ferramenta apresenta uma perda de desempenho. Isso acontece porque ela escolheu o algoritmo \textit{BoyerMoore} para tratar a maior parte dos padrões.
-
-\subsubsection{Teste 3: Busca Aproximada de um Único Padrão}
-
-Para testar a busca aproximada, nós utilizamos um arquivo de texto de 1.1GB na língua inglesa. Os padrões utilizados também era palavras ou frases da língua inglesa. Os erros máximos foram gerados aleatoriamente. Utilizamos a ferramenta \textit{agrep} para comparação. Dessa forma, as entradas tiveram que ser limitadas. Isso porque o \textit{agrep} não aceita padrões maiores que 32 nem erros superiores a 8.
-
-O resultado desse teste pode ser visto nas Figuras \ref{fig:pmtA1} e \ref{fig:pmtA2}, onde os tempos de execução são mostrados em função do tamanho do padrão e do erro máximo, respectivamente.
-
-\begin{figure}[h]
-	{\centering Resultado do Teste 3: Tempo em Função do Tamanho do Padrão\par}
-	\includegraphics{tests/pmtA1}
-\caption{Vários padrões com tamanho entre 3 e 26 foram procurados em um texto de 1.1GB. O gráfico mostra o tempo de execução em função do tamanho dos padrões.}
-\label{fig:pmtA1}
-\end{figure}
-
-\begin{figure}[h]
-	{\centering Resultado do Teste 3: Tempo em Função do Erro Máximo\par}
-	\includegraphics{tests/pmtA2}
-\caption{Várias buscas com erro máximo entre 1 e 8 foram realizadas em um texto de 1.1GB. O gráfico mostra o tempo de execuçã em função do erro máximo.}
-\label{fig:pmtA2}
-\end{figure}
-
-Embora a busca aproximada seja consideravelmente mais lenta que a busca exata, podemos verificar, nas Figuras \ref{fig:pmtA1} e \ref{fig:pmtA2}, que nossa ferramenta não destoa do comportamento geral do \textit{agrep}. Principalmente quando encaramos o resultado em função do erro máximo, vemos que nossa ferramenta é mais eficiente em vários casos (erros de 3 a 8).
-\section{Conclusão}
-
-Já fizemos observações importantes sobre nossa ferramenta e seus algoritmos ao longo da apresentação dos resultados dos testes realizados. Concluímos nossa análise aqui elencando alguns pontos positivos e negativos da nossa implementação.
-
-Pontos positivos:
-\begin{itemize}
-	\item \textbf{Algoritmos Online}. Todos os algoritmos implementados são \textit{online}. Isso permite que buscas possam ser realizadas eficientemente mesmo em arquivos muito grande. Em particular, não armazenamos grandes quantidades do texto na memória.
-
-	\item \textbf{Combinação de Algoritmos}. Com nossas heurísticas de combinação de algoritmos tentamos aproveitar boas características de todos os algoritmos. Alguns casos ruins, no entanto, ainda podem acontecer, mas acreditamos que são pouco comuns (ver discussão sobre \U e \textit{BoyerMoore}).
-
-	\item \textbf{Saída}. Consideramos que a saída da nossa ferramenta atende a vários interesses. Ela pode apenas mostrar a quantidade de ocorrências encontradas ou, em seu comportamento padrão, exibir um pedaço do texto onde a ocorrência foi encontrada. Além disso, no caso de buscas aproximadas, é possível reconstruir um alinhamento para cada ocorrência.
-\end{itemize}
-
-Pontos negativos:
-\begin{itemize}
-	\item \textbf{Comparação com grep}. Vimos nos testes que a ferramenta \textit{grep} possui um desempenho superior à nossa em quase todos os cenários. Apenas para padrões pequenos nossa ferramenta se mostra melhor.
-
-	\item \textbf{Busca Aproximada}. Os algoritmos de busca aproximada implementados são, de certa forma, limitados. Tentamos usar sempre que possível o \U, que se mostrou eficiente principalmente para arquivos de texto grande. No entanto, quando não se pode usar esse algortimo, devido à sua perda exponencial de desempenho, nossas implementações dos demais algoritmos também não são boas.
-
-	\item \textbf{Saída}. Consideramos que a saída da nossa ferramenta atende a vários interesses. Ela pode apenas mostrar a quantidade de ocorrências encontradas ou, em seu comportamento padrão, exibir um pedaço do texto onde a ocorrência foi encontrada. Além disso, no caso de buscas aproximadas, é possível reconstruir um alinhamento para cada ocorrência.
-\end{itemize}
 
 \end{document}

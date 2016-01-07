@@ -21,11 +21,10 @@ SuffixArray::~SuffixArray(){
 	if(rLcp) delete [] rLcp;
 }
 
-
 void SuffixArray::serialize(Compressor* compressor) {
 	//Escreve o tamanho do texto e o texto
 	compressor->feedRawBits(n, 32);
-	int tot = 4 * n, saved = 0, percentageToPrint = 0;
+	int tot = 2 * n, saved = 0, percentageToPrint = 0;
 	for(int i = 0; i < n; ++i) {
 		compressor->feedRawBits(text[i], 8);
 		if(percentageToPrint  <= saved) {
@@ -37,16 +36,13 @@ void SuffixArray::serialize(Compressor* compressor) {
 	saved = n;
 		
 	int sizeOfIntegers = SIZE_IN_BITS(int(n-1)); 
-	int *arrays[] = {suffixArray, lLcp, rLcp};
-	for(int j = 0; j < 3; ++j) {
-		for(int i = 0; i < n; ++i) {
-			compressor->feedRawBits(arrays[j][i], sizeOfIntegers);
-			++saved;
-			if(percentageToPrint  <= saved) {
-				printf("\r%.2lf%% concluído", double(saved)/tot * 100);
-				fflush(stdout);
-				percentageToPrint += tot/10;
-			}
+	for(int i = 0; i < n; ++i) {
+		compressor->feedRawBits(suffixArray[i], sizeOfIntegers);
+		++saved;
+		if(percentageToPrint  <= saved) {
+			printf("\r%.2lf%% concluído", double(saved)/tot * 100);
+			fflush(stdout);
+			percentageToPrint += tot/10;
 		}
 	}
 	printf("\n");
@@ -56,7 +52,7 @@ void SuffixArray::serialize(Compressor* compressor) {
 void SuffixArray::deserialize(Decompressor* decompressor) {
 	n = decompressor->readBits(32);
 	char* tmp = new char[n+1];
-		
+
 	int tot = n, loaded = 0, percentageToPrint = 0;
 	for(int i = 0; i < n; ++i) {
 		tmp[i] = decompressor->readBits(8);
@@ -70,47 +66,26 @@ void SuffixArray::deserialize(Decompressor* decompressor) {
 	text = tmp;
 
 	printf("\n");
-	tot = 3 * n, loaded = 0, percentageToPrint = 0;
+	tot = n, loaded = 0, percentageToPrint = 0;
 	suffixArray = new int[n];
 	lLcp = new int[n];
 	rLcp = new int[n];
 	int sizeOfIntegers = SIZE_IN_BITS(int(n-1)); 
-	
-	int* arrays[] = {suffixArray, lLcp, rLcp};
-	for(int j = 0; j < 3; ++j) {
-		for(int i = 0; i < n; ++i) {
-			arrays[j][i] = decompressor->readBits(sizeOfIntegers);
-			++loaded;
-			if(percentageToPrint <= loaded) {
-				printf("\rDescomprimindo restante do índice ... %.2lf%% concluído", double(loaded)/tot * 100);
-				fflush(stdout);
-				percentageToPrint += tot/10;
-			}
+	for(int i = 0; i < n; ++i) {
+		suffixArray[i] = decompressor->readBits(sizeOfIntegers);
+		++loaded;
+		if(percentageToPrint <= loaded) {
+			printf("\rDescomprimindo restante do índice ... %.2lf%% concluído", double(loaded)/tot * 100);
+			fflush(stdout);
+			percentageToPrint += tot/10;
 		}
 	}
-	printf("\n\n\n");
-	
-}
 
-
-void SuffixArray::build(const char* text, size_t size) {
-	this->n = size;
-	this->text = text;	
-
-	saDual = new int[size];
-	suffixArray = new int[size];
-
-	count = new int[MAX(256, size)+1];
-	tmp = new int[MAX(256, size)+1];
-	
-	pieces = new Piece[size];
-	auxPieces = new Piece[size];
-
-	buildSuffixArray();
-	
-	lcp = count; //para evitar fazer nova alocação
-	count = NULL; //Não vamos mais utilizar count
-
+	printf("\nConstruindo o restante do índice...");
+	saDual = new int[n];
+	lcp = new int[n];
+	for(int i = 0; i < n; ++i)
+		saDual[suffixArray[i]] = i;
 	int lastLcp = 0;
 	for(int i = 0; i < n; ++i){
 		if(saDual[i] > 0){
@@ -122,13 +97,39 @@ void SuffixArray::build(const char* text, size_t size) {
 				--lastLcp;
 		}
 	}
-	
-	lLcp = saDual;
-	saDual = NULL;
-	rLcp = tmp;
-	tmp = NULL;
-	
+
 	buildLcpArrays(0, n-1);
+	delete saDual;
+	delete lcp;
+	saDual = lcp = NULL;
+	printf("\n\n\n");
+}
+
+
+
+void SuffixArray::build(const char* text, size_t size) {
+	this->n = size;
+	this->text = text;	
+
+	saDual = new int[size];
+	suffixArray = new int[size];
+
+	count = new int[MAX(256, size)+1];
+	tmp = new int[MAX(256, size)+1];
+
+	pieces = new Piece[size];
+	auxPieces = new Piece[size];
+
+	buildSuffixArray();
+
+	delete count;
+	delete pieces;
+	delete auxPieces;
+	delete tmp;
+	delete saDual;
+	count = tmp = saDual = NULL;
+	auxPieces = pieces = NULL;
+
 }
 
 int* SuffixArray::getArray() {
@@ -146,7 +147,7 @@ int* SuffixArray::getRlcp() {
 //Preenche os valores lLcp[h] e rRcp[h] para h = (l+r)/2.
 //Retorna o menor valor do array lcp no intervalo (l, r]
 int SuffixArray::buildLcpArrays(int l, int r) {
-	
+
 	//não atualiza (l|r)Lcp. A busca binária não entra em intervalos deste tamanho
 	if(r-l == 1) {
 		return lcp[r];
@@ -155,8 +156,8 @@ int SuffixArray::buildLcpArrays(int l, int r) {
 	int h = (l+r)>>1;
 
 	lLcp[h] = buildLcpArrays(l, h);
-   	rLcp[h] = buildLcpArrays(h, r);
-	
+	rLcp[h] = buildLcpArrays(h, r);
+
 	return MIN(lLcp[h], rLcp[h]);
 }
 

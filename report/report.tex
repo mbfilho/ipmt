@@ -91,5 +91,130 @@ Interrompemos a busca sempre que o maior prefixo comum for igual à própria jan
 
 A árvore que utilizamos foi a \textit{treap}\footnote{https://en.wikipedia.org/wiki/Treap}. Ela é uma árvore balanceada com \textit{alta probabilidade}. Um dos atrativos para seu emprego no nosso projeto é sua facilidade de implementação e verificação de corretude.
 
+\section{Testes}
+
+\subsection{Algoritmos de Compressão}
+
+
+Realizamos testes de compressão entre diferentes configurações dos algoritmos implementados e a ferramenta de compressão \textit{gzip}. As configurações testadas foram as seguintes:
+\begin{itemize}
+	\item LZ77 com janela de \textit{buffer} com 128 \textit{bytes} e janela de \textit{lookahead} com 8 \textit{bytes},
+	\item LZ77 com janela de \textit{buffer} com 1024 \textit{bytes} e janela de \textit{lookahead} com 16 \textit{bytes},
+	\item LZ77 com janela de \textit{buffer} com 4096 \textit{bytes} e janela de \textit{lookahead} com 32 \textit{bytes},
+	\item LZ78 com os três níveis de compressão: 0, 1 e 2, 
+	\item LZW também com os três níveis de compressão: 0, 1 e 2.
+\end{itemize}
+
+O nível de compressão 0 permite que o dicionário do LZ78/W tenha no máximo $2^{16}$ elementos. O nível 1 permite que ele tenha $2^{19}$ elementos e o nível 2 permite que ele tenha capacidade virtualmente infinita ($2^{31}$).
+
+No primeiro cenário de testes apresentamos aos algoritmos arquivos de texto em inglês separados por tamanho. Cada tamanho foi representado por 3 arquivos diferentes e cada um deles foi apresentado 3 vezes aos algoritmos. O tempo de execução para cada tamanho foi calculado como a média dessas 9 execuções. Já o tamanho do arquivo comprimido foi calculado como a média dos tamanhos dos arquivos gerados em cada execução. Registramos os resultados nos gráficos das figuras \ref{fig:e1}, \ref{fig:e2} e \ref{fig:e3}.
+
+\begin{figure}
+	{\centering Tempo de Execução do Teste 1 - Sem o LZ77\par}
+	\includegraphics{images/natural_tempo_sem_lz77}
+\caption{}
+\label{fig:e1}
+\end{figure}
+
+\begin{figure}
+	{\centering Tempo de Execução do Teste 1 - LZ77\par}
+	\includegraphics{images/natural_tempo_com_lz77}
+\caption{}
+\label{fig:e2}
+\end{figure}
+
+\begin{figure}
+	{\centering Tamanho dos Arquivos Comprimidos no Teste 1\par}
+	\includegraphics{images/natural_taxa}
+\caption{}
+\label{fig:e3}
+\end{figure}
+
+Separamos os tempos de execução do teste 1 nas figuras \ref{fig:e1} e \ref{fig:e2} apenas para facilitar a visualização. Note que os tempos do algoritmo LZ77 foram bem superiores aos demais em todas as suas configurações testadas. Os níveis 1 e 2 de compressão dos algoritmos LZ78 e LZW não causaram grande diferença nos tempos de execução. Todos os algoritmos e também a ferramenta \textit{gzip} apresentaram um crescimento linear do tempo de execução.
+
+Como mostra a \figref{fig:e3}, todos os algoritmos apresentaram um comportamento aproximadamente constante em relação ao tamanho do arquivo comprimido. Note que os níveis 1 e 2 de compressão, tanto do LZ78 quanto do LZW, tiveram resultados indistinguíveis neste teste. A ferramenta \textit{gzip} se mostrou bastante superior em relação à taxa de compressão neste primeiro cenário.
+
+Ainda no mesmo cenário de teste, medimos o tempo médio necessário para descomprimir os arquivos gerados. Como mencionamos, cada tamanho é representado por 3 arquivos distintos. Por isso, o tempo de descompressão é calculado como a média para descomprimir os 3 arquivos gerados na etapa anterior (de compressão). Apresentamos os resultados no gráfico da \figref{fig:e4}.
+
+\begin{figure}
+	{\centering Tempo Médio para Descompressão do Teste 1\par}
+	\includegraphics{images/natural_descompressao}
+\caption{}
+\label{fig:e4}
+\end{figure}
+
+Em relação à descompressão, os algoritmos apresentaram um crescimento do tempo de execução aproximadamente linear. Algumas anomalias podem ser notadas na \figref{fig:e4}, provavelmente decorrentes de alguma característica particular dos arquivos utilizados. Os tempos de execução de todos os algoritmos são compatíveis, com exceção do \textit{gzip}, que cresce mais devagar. Em particular, o LZ77 consegue bons tempos de execução.
+
+Embora os arquivos de texto nos ajudem a ter uma ideia do comportamento dos algoritmos, os tipos de arquivos que iremos comprimir são binários. Não podemos dizer, a princípio, o quão diferentes eles são dos arquivos de texto, principalmente porque não sabemos o quão redundante eles são e nem como as possíveis repetições presentes neles estão distribuídas. Por essa razão criamos um segundo cenário de testes no qual os arquivos apresentados aos algoritmos são pedaços de arquivos de índices gerados por nossas implementações do \textit{array} de sufixo e da árvore de sufixo. 
+
+Utilizamos a mesma estratégia para a geração dos arquivos de teste: separamos os arquivos por tamanho de modo que cada tamanho fosse representado por 3 arquivos. Nossa escolha dos tamanhos, no entanto, foi um pouco diferente. Notamos que os arquivos de índice gerados, os que de fato serão comprimidos, têm, em geral, tamanho bem superior ao dos arquivos de texto original. Por isso, neste cenário de arquivos binários, utilizamos tamanhos maiores. Reportamos os resultados nos gráficos das figuras \ref{fig:e5}, \ref{fig:e6} e \ref{fig:e7}.
+
+\begin{figure}
+	{\centering Tempo de Execução do Teste 2 - Sem o LZ77\par}
+	\includegraphics{images/binario_tempo_sem_lz77}
+\caption{}
+\label{fig:e5}
+\end{figure}
+
+\begin{figure}
+	{\centering Tempo de Execução do Teste 2 - LZ77\par}
+	\includegraphics{images/binario_tempo_com_lz77}
+\caption{}
+\label{fig:e6}
+\end{figure}
+
+\begin{figure}
+	{\centering Tamanho dos Arquivos Comprimidos no Teste 2\par}
+	\includegraphics{images/binario_taxa}
+\caption{}
+\label{fig:e7}
+\end{figure}
+
+
+Os tempos médios de execução reportados nas figuras \ref{fig:e5} e \ref{fig:e6} não chegam a trazer grandes novidades em relação aos testes anteriores. Constatamos mais uma vez que esses tempos crescem linearmente com o tamanho dos arquivos.
+
+A novidade fica por conta do tamanho dos arquivos comprimidos, mostradas no gráfico da \figref{fig:e7}. Alguns arquivos foram ``expandidos'' por alguns algoritmos. Em particular, o LZ77 com 4096 \textit{bytes} de \textit{buffer} e 32 de \textit{lookahead} chegou a aumentar um arquivo de 50MB em 30\%. É interessante também notar que a taxa de compressão não se comportou de maneira constante, como no teste anterior. Em parte isso se deve pela natureza dos arquivos de índice. Isso porque eles contém tanto o texto original quanto a estrutura de dados serializada. Por essa razão, alguns dos arquivos de testes, que foram extraídos aleatoriamente de arquivos de índice, tiveram maior quantidade de texto que outros.
+
+Ressaltamos que também o \textit{gzip} experimentou uma diminuição na sua taxa de compressão quando apresentado aos arquivos binários. Enquanto que no cenário anterior ele reduzia os arquivos a 40\% de seu tamanho original, agora ele gera arquivos com cerca de 70\% de seu tamanho original. Esse fato atesta que os arquivos binários apresentados são mais ``desafiadores'' para os algoritmos de compressão.
+
+Por fim reportamos na \figref{fig:e8} os tempos de descompressão dos arquivos binários comprimidos. Podemos perceber que o \textit{gzip} possui um tempo de execução bastante inferior aos das nossas implementações. 
+
+
+\begin{figure}
+	{\centering Tempo Médio para Descompressão do Teste 2\par}
+	\includegraphics{images/binario_descompressao}
+\caption{}
+\label{fig:e8}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \end{document}

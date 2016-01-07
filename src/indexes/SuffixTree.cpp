@@ -133,7 +133,14 @@ void SuffixTree::build(const char* text, size_t n) {
 
 	insertNodeIntoTree(0, 0); //A raiz
 	ImplicitPointer current(0, 1, 0);
+	int tot = n, built  = 0, percentageToPrint = 0;
 	for(int i = 0; i < n; ++i){
+		++built;
+		if(percentageToPrint <= built) {
+			printf("\rÁrvore %.2lf%% concluída", double(built)/tot * 100);
+			fflush(stdout);
+			percentageToPrint += tot/10;
+		}
 		int wprime = -1;
 		int w;
 		bool isTerm;
@@ -174,6 +181,7 @@ void SuffixTree::build(const char* text, size_t n) {
 		canonise(current);
 		printTree(i);
 	}
+	printf("\n");
 	if(dotFile)
 		fclose(dotFile);
 }

@@ -2,7 +2,7 @@ import subprocess
 import os
 
 #textFiles = ['1mb', '2mb', '3mb', '5mb', '6mb', '7mb', '9mb', '10mb', '15mb']
-textFiles = ['20mb', '25mb', '30mb', '40mb', '50mb']
+textFiles = ['200mb', '300mb']
 repetitions = 3
 numberOfFiles = 3
 
@@ -36,10 +36,10 @@ def executeAndGetTime(line):
 
 timeFile = open('time.results', 'a')
 headers = ['FileSize', 'lz77_128_8', 'lz77_1024_16', 'lz77_4096_32', 'lzw_0', 'lzw_1', 'lzw_2', 'lz78_0', 'lz78_1', 'lz78_2', 'gzip']
-#timeFile.write( (11 * '%13s') % tuple(headers))
-#timeFile.write('\n')
+timeFile.write( (11 * '%13s') % tuple(headers))
+timeFile.write('\n')
 
-confere = open('confere.sh', 'w')
+confere = open('confere.sh', 'a')
 for aux in textFiles:
 	timeResults = 10 * [0]
 	for f in range(numberOfFiles):

@@ -1,7 +1,7 @@
 set encoding utf8
 #set title "Tempo de Execucao" font ",20"
-set xlabel 'Tamanho do Arquivo (Kb)'
-set ylabel 'Tempo de Execução (segundos)'
+set xlabel 'Tamanho do Arquivo (MB)'
+set ylabel 'Tempo Médio de Execução (segundos)'
 
 set key outside nobox
 set style data points
@@ -11,7 +11,7 @@ set output "mean.pdf"
 set terminal pdf font 'Helvetica,10'
 set grid
 
-plot 'time.results' using 1:2 title column(2) with lp pt 7 ps 0.2 , \
+plot  'time.results' using 1:2 title column(2) with lp pt 7 ps 0.2 , \
 	 'time.results' using 1:3 title column(3) with lp pt 2 ps 0.2, \
 	 'time.results' using 1:4 title column(4) with lp pt 3 ps 0.2, \
 	 'time.results' using 1:5 title column(5) with lp pt 4 ps 0.2, \

@@ -2,7 +2,7 @@ import subprocess
 import os
 
 #textFiles = ['1mb', '2mb', '3mb', '5mb', '6mb', '7mb', '9mb', '10mb', '15mb']
-textFiles = ['20mb', '25mb', '30mb', '40mb', '50mb']
+textFiles = ['300mb', '400mb']
 repetitions = 3
 numberOfFiles = 3
 

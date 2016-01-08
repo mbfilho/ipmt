@@ -44,12 +44,13 @@ De maneira semelhante da que fizemos com a árvore de sufixos, tentamos separar 
 
 Utilizamos um algoritmo de ordenação linear, o \textit{radix sort}, para alcançar uma implementação de custo $O(n\log(n))$.
 
-O armazenamento do array de sufixos é bem mais simples que o da árvore de sufixos. Precisamos apenas salvar o \textit{array} de sufixos propriamente dito e os vetores auxiliares \textit{lLcp} e \textit{rLcp} definidos como durante o curso. Ressaltamos que todos os inteiros nestes vetores são limitados por $n$ e, portanto, precisam de $\log(n)$ \textit{bits} para serem representados.
-
 O algoritmo visto no curso, e por nós implementado, utiliza um vetor $P$ de tamanho $n\log(n)$. Durante a construção do \textit{array} de sufixos, no entanto, apenas as duas últimas posições interessam. Armazenar apenas essas linhas representa, portanto, uma grande economia de memória. No entanto \textit{todo} o vetor $P$ é exigido para o cálculo dos auxiliares \textit{lLcp} e \textit{rLcp}.
 
 Para evitar manter todo o vetor $P$ utilizamos uma estratégia diferente para a construção dos vetores auxiliares. Primeiramente definimos o vetor \textit{lcp} de forma que $lcp[i]$ é o maior prefixo comum entre os sufixos $sa[i]$ e $sa[i-1]$. Porque ele guarda o $lcp$ de sufixos \textit{consecutivos} no \textit{array} de sufixos, conseguimos construir o vetor $lcp$ em tempo linear. Note que o maior prefixo comum entre dois sufixos $sa[j]$ e $sa[k]$ quaisquer é o menor valor entre $lcp[j+1]$ e $lcp[k]$, supondo que $j+1 \leq k$. Com essa observação, podemos utilizar uma estratégia do tipo \textit{dividir para conquistar} para preencher os valores de \textit{lLcp} e \textit{rLcp}. Para tanto implementamos uma função recursiva que simula todos os intervalos válidos de uma busca binária. O menor valor de $lcp$ contido em determinado intervalo é calculado recursivamente. Essa função gera no máximo $2n$ chamadas recursivas e, portanto, monta os vetores auxiliares em tempo linear.
 
+Como a construção dos vetores \textit{lLcp} e \textit{rLcp} tem custo linear, nós podemos salvar no arquivo de índice apenas o \textit{array} de sufixos (e o texto original, naturalmente). Os inteiros do \textit{array} de sufixos são limitados pelo valor $n$ e, portanto, precisam de $\log(n)$ \textit{bits} para serem representados. 
+
+Ao carregarmos o índice, recuperamos o \textit{array} de sufixos já pronto e calculamos os vetores auxiliares.
 
 \subsection{Compressão e Descompressão}
 

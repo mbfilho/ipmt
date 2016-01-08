@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cassert>
+#include <cmath>
 
 #include <vector>
 #include <string>
@@ -39,7 +40,7 @@ enum CompressionAlgorithm {
 };
 
 enum IndexDataStructure {
-	SUFFIX_ARRAY, SUFFIX_TREE
+	SUFFIX_ARRAY, SUFFIX_TREE, SUFFIX_TREE2
 };
 
 /*

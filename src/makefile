@@ -5,8 +5,8 @@ bench = bench
 
 genObjFile = g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) -c $<
 
-all: Ipmt.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o HashTable.o LZ77C.o LZ77D.o IpmtConfiguration.o Decompressor.o Global.o
-	g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) SuffixArray.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o HashTable.o LZ77C.o LZ77D.o Compressor.o IpmtConfiguration.o  Decompressor.o Global.o $<
+all: Ipmt.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o HashTable.o LZ77C.o LZ77D.o IpmtConfiguration.o Decompressor.o Global.o SuffixTree2.o SuffixTreeAux.o
+	g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) SuffixArray.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o HashTable.o LZ77C.o LZ77D.o Compressor.o IpmtConfiguration.o  Decompressor.o Global.o SuffixTree2.o SuffixTreeAux.o $<
 
 Global.o: $(aux)/Global.cpp $(aux)/Global.h
 	$(genObjFile)
@@ -22,9 +22,13 @@ IpmtConfiguration.o: $(aux)/IpmtConfiguration.cpp $(aux)/IpmtConfiguration.h $(a
 SuffixArray.o: $(idx)/SuffixArray.cpp $(idx)/SuffixArray.h $(idx)/Index.h $(aux)/Global.h $(aux)/Printer.h $(comp)/Compressor.h $(comp)/Decompressor.h
 	$(genObjFile)
 
+SuffixTreeAux.o: $(aux)/SuffixTreeAux.cpp $(aux)/SuffixTreeAux.h $(aux)/SuffixTreeNode.h $(aux)/Global.h
+	$(genObjFile)
 SuffixTreeNode.o: $(aux)/SuffixTreeNode.cpp $(aux)/SuffixTreeNode.h 
 	$(genObjFile)
-SuffixTree.o: $(idx)/SuffixTree.cpp $(idx)/SuffixTree.h $(aux)/SuffixTreeNode.h $(comp)/Compressor.h $(comp)/Decompressor.h
+SuffixTree.o: $(idx)/SuffixTree.cpp $(idx)/SuffixTree.h $(aux)/SuffixTreeNode.h $(comp)/Compressor.h $(comp)/Decompressor.h $(aux)/Printer.h $(aux)/Global.h $(idx)/Index.h
+	$(genObjFile)
+SuffixTree2.o: $(idx)/SuffixTree2.cpp $(idx)/SuffixTree2.h $(aux)/SuffixTreeAux.h $(comp)/Compressor.h $(comp)/Decompressor.h $(aux)/Printer.h $(aux)/Global.h $(idx)/Index.h
 	$(genObjFile)
 
 Printer.o: $(aux)/Printer.cpp $(aux)/Printer.h $(aux)/Global.h

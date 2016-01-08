@@ -1,5 +1,6 @@
 #include "SuffixArray.h"
 #include "SuffixTree.h"
+#include "SuffixTree2.h"
 #include "IpmtConfiguration.h"
 #include "OptionsParsing.cpp"
 #include <cstring>
@@ -60,7 +61,10 @@ Index* loadIndex(IpmtConfiguration& config) {
 	} else if(index == SUFFIX_TREE) {
 		loaded = new SuffixTree(NULL);
 		printf("Tipo do índice armazenado: Árvore de Sufixos.\n");
-	}	
+	} else if(index == SUFFIX_TREE2) {
+		loaded = new SuffixTree2(NULL);
+		printf("Tipo do índice armazenado: Árvore de Sufixos [2].\n");
+	}
 
 	assert(loaded != NULL); assert(decompressor != NULL);
 	loaded->deserialize(decompressor);
@@ -135,7 +139,13 @@ int main(int argc, char* argv[]){
 	Index* index = NULL;
 	if(config.mode == "index") {
 		IndexDataStructure indexType = config.getIndexDataStructure();
-		if(indexType == SUFFIX_TREE) {
+		if(indexType == SUFFIX_TREE2) {
+			printf("Construindo Árvore de Sufixos [2] ...\n");
+			const char* dotFile = NULL;
+			if(config.dotFile != "")
+				dotFile = config.dotFile.c_str();
+			index = new SuffixTree2(dotFile);
+		} else if(indexType == SUFFIX_TREE) {
 			printf("Construindo Árvore de Sufixos ...\n");
 			const char* dotFile = NULL;
 			if(config.dotFile != "")
@@ -149,7 +159,7 @@ int main(int argc, char* argv[]){
 		if(FILE* in = fopen(config.textFileName.c_str(), "r")){
 			size_t read = fread(buffer, sizeof(char), SIZE-2, in);
 			if(buffer[read-1] == '\n') --read;
-			if(indexType == SUFFIX_TREE)
+			if(indexType == SUFFIX_TREE || indexType == SUFFIX_TREE2)
 				buffer[read++] = 0; //adiciona um caractere que não aprece no texto. Vai que o '$' aparece ...
 			buffer[read] = 0;
 			

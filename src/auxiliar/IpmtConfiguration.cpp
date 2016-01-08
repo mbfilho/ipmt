@@ -25,6 +25,8 @@ CompressionAlgorithm IpmtConfiguration::getCompressionAlgorithm() {
 IndexDataStructure IpmtConfiguration::getIndexDataStructure() {
 	if(indexType == "suffixtree")
 		return SUFFIX_TREE;
+	else if(indexType == "suffixtree2")
+		return SUFFIX_TREE2;
 	return SUFFIX_ARRAY;
 }
 
@@ -68,8 +70,8 @@ bool IpmtConfiguration::validateConfig(){
 		}
 
 	} else {
-		if(indexType != "suffixtree" && indexType != "suffixarray") {
-			printf("Indice não suportado: \'%s\'. Você quis dizer \'suffixtree\' ou \'suffixarray\'?\n", indexType.c_str());
+		if(indexType != "suffixtree" && indexType != "suffixarray" && indexType != "suffixtree2") {
+			printf("Indice não suportado: \'%s\'. Você quis dizer \'suffixtree\', \'suffixtree2\' ou \'suffixarray\'?\n", indexType.c_str());
 			valid = false;
 		}
 	

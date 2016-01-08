@@ -1,8 +1,7 @@
 import subprocess
 import os
 
-#textFiles = ['1mb', '2mb', '3mb', '5mb', '6mb', '7mb', '8mb', '9mb', '10mb', '20mb']
-textFiles = ['60mb']
+textFiles = ['1mb', '2mb', '3mb', '5mb', '6mb', '7mb', '8mb', '9mb', '10mb', '20mb', '30mb', '40mb', '50mb']
 repetitions = 3
 numberOfFiles = 3
 
@@ -34,13 +33,13 @@ def executeAndGetTime(line):
 		print out
 	return t
 
-timeFile = open('time.results', 'a')
-sizeFile = open('size.results', 'a')
+timeFile = open('time.results', 'w')
+sizeFile = open('size.results', 'w')
 headers = ['FileSize', 'Arvore de Sufixos', 'Array de Sufixos']
-#timeFile.write( (3 * '%20s') % tuple(headers))
-#timeFile.write('\n')
-#sizeFile.write( (3 * '%20s') % tuple(headers))
-#sizeFile.write('\n')
+timeFile.write( (3 * '%20s') % tuple(headers))
+timeFile.write('\n')
+sizeFile.write( (3 * '%20s') % tuple(headers))
+sizeFile.write('\n')
 
 for aux in textFiles:
 	timeResults = 2 * [0]

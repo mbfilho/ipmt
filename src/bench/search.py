@@ -1,7 +1,8 @@
 import subprocess
 import os
 
-files = ['5mb', '10mb', '20mb', '50mb', '60mb', '70mb']
+#files = ['1mb', '2mb', '3mb', '4mb', '6mb', '7mb', '8mb', '9mb']
+files = [('%smb' % d) for d in list(range(1,5)) + list(range(6,10)) ]
 repetitions = 3
 
 def getSize(fileName):
@@ -38,16 +39,16 @@ def executeAndGetTime(line, preventPrinting = False):
 
 
 headers = ['FileSize', 'Setup', 'Search']
-saFile = open('sa.results', 'w')
-stFile = open('st.results', 'w')
-grepFile = open('grep.results', 'w')
+saFile = open('sa.results', 'a')
+stFile = open('st.results', 'a')
+grepFile = open('grep.results', 'a')
 
-saFile.write((3 * '%20s') % tuple(headers))
-saFile.write('\n')
-stFile.write((3 * '%20s') % tuple(headers))
-stFile.write('\n')
-grepFile.write((3 * '%20s') % tuple(headers))
-grepFile.write('\n')
+#saFile.write((3 * '%20s') % tuple(headers))
+#saFile.write('\n')
+#stFile.write((3 * '%20s') % tuple(headers))
+#stFile.write('\n')
+#grepFile.write((3 * '%20s') % tuple(headers))
+#grepFile.write('\n')
 
 for f in files:
 	saResults = 2 * [0]
@@ -55,9 +56,15 @@ for f in files:
 	grepResults = 2 * [0]
 	
 #	for i in range(repetitions):
-#		with open(f + '.pat', 'r') as patFile:
-#			grepResults[1] += executeAndGetTime('grep -f %s %s -o | wc -l > grep.%s' % (f + '.pat', f, f)) 
-#		
+#	with open(f + '.pat', 'r') as patFile:
+#		cnt = 0
+#		for line in patFile:
+#			if cnt % 1000 == 0:
+#				print cnt
+#			cnt += 1
+#			line = line[:-1]
+#			grepResults[1] += executeAndGetTime('grep -F -e \\"%s\\" %s -c' % (line, f), True ) 
+		
 	executeAndGetTime('./ipmt index %s --indextype suffixtree' % f)
 	for i in range(repetitions):
 		stResults[0] += executeAndGetTime('./ipmt search -p %s %s -c -i 2 ' % (f + '.pat', f + '.idx', ))
@@ -79,7 +86,7 @@ for f in files:
 	saFile.write('\n')
 	saFile.flush()
 
-	grepLine = [getSize(f), 0, grepResults[1] / repetitions]
+	grepLine = [getSize(f), 0, grepResults[1] ] # ATENCAO, NAO TIRA A MEDIA
 	grepFile.write( (3 * '%20f') % tuple(grepLine))
 	grepFile.write('\n')
 	grepFile.flush()

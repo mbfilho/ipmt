@@ -1,8 +1,8 @@
 import subprocess
 import os
 
-#files = ['1mb', '2mb', '3mb', '4mb', '6mb', '7mb', '8mb', '9mb']
-files = [('%smb' % d) for d in list(range(1,5)) + list(range(6,10)) ]
+#files = ['1mb', '2mb', '3mb', '4mb', '5mb', '6mb', '7mb', '8mb', '9mb', '10mb', '20mb', '50mb', '60mb', '70mb']
+files = ['20mb', '50mb', '60mb', '70mb']
 repetitions = 3
 
 def getSize(fileName):
@@ -55,16 +55,12 @@ for f in files:
 	stResults = 2 * [0]
 	grepResults = 2 * [0]
 	
-#	for i in range(repetitions):
-#	with open(f + '.pat', 'r') as patFile:
-#		cnt = 0
-#		for line in patFile:
-#			if cnt % 1000 == 0:
-#				print cnt
-#			cnt += 1
-#			line = line[:-1]
-#			grepResults[1] += executeAndGetTime('grep -F -e \\"%s\\" %s -c' % (line, f), True ) 
-		
+	for i in range(repetitions):
+		with open(f + '.pat', 'r') as patFile:
+			for line in patFile:
+				line = line[:-1]
+				grepResults[1] += executeAndGetTime('grep -F -e \\"%s\\" %s -c' % (line, f)) 
+			
 	executeAndGetTime('./ipmt index %s --indextype suffixtree' % f)
 	for i in range(repetitions):
 		stResults[0] += executeAndGetTime('./ipmt search -p %s %s -c -i 2 ' % (f + '.pat', f + '.idx', ))
@@ -86,7 +82,7 @@ for f in files:
 	saFile.write('\n')
 	saFile.flush()
 
-	grepLine = [getSize(f), 0, grepResults[1] ] # ATENCAO, NAO TIRA A MEDIA
+	grepLine = [getSize(f), 0, grepResults[1]/repetitions ] # ATENCAO, NAO TIRA A MEDIA
 	grepFile.write( (3 * '%20f') % tuple(grepLine))
 	grepFile.write('\n')
 	grepFile.flush()

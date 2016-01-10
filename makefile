@@ -1,12 +1,18 @@
-aux = auxiliar
-idx = indexes
-comp = compression
-bench = bench
+src = src
+aux = src/auxiliar
+idx = src/indexes
+comp = src/compression
 
 genObjFile = g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) -c $<
 
-all: Ipmt.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o HashTable.o LZ77C.o LZ77D.o IpmtConfiguration.o Decompressor.o Global.o SuffixTree2.o SuffixTreeAux.o
-	g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) SuffixArray.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o HashTable.o LZ77C.o LZ77D.o Compressor.o IpmtConfiguration.o  Decompressor.o Global.o SuffixTree2.o SuffixTreeAux.o $<
+install:
+	mkdir -p bin
+	make all
+	mv ipmt bin/ipmt
+	rm *.o
+
+all: $(src)/Ipmt.cpp $(aux)/OptionsParsing.cpp SuffixArray.o SuffixTree.o SuffixTreeNode.o DummyCompressor.o DummyDecompressor.o Printer.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o HashTable.o LZ77C.o LZ77D.o IpmtConfiguration.o Decompressor.o Global.o SuffixTree2.o SuffixTreeAux.o
+	g++ -O3 -g -I $(aux) -I $(comp) -I $(idx) SuffixArray.o SuffixTree.o SuffixTreeNode.o Printer.o DummyCompressor.o DummyDecompressor.o LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o HashTable.o LZ77C.o LZ77D.o Compressor.o IpmtConfiguration.o  Decompressor.o Global.o SuffixTree2.o SuffixTreeAux.o -o ipmt $<
 
 Global.o: $(aux)/Global.cpp $(aux)/Global.h
 	$(genObjFile)
@@ -60,8 +66,6 @@ LZ77C.o: $(comp)/LZ77C.cpp $(comp)/LZ77C.h $(aux)/Global.h $(comp)/Compressor.h 
 LZ77D.o: $(comp)/LZ77D.cpp $(comp)/LZ77D.h $(aux)/InputBuffer.h $(comp)/Decompressor.h
 	$(genObjFile)
 
-TestCompression: $(bench)/TestCompression.cpp LZ78C.o $(aux)/Global.h LZ78D.o InputBuffer.o LZWC.o LZWD.o Compressor.o LZ77C.o LZ77D.o HashTable.o Global.o Decompressor.o
-	g++ -O3 -g -I $(aux) -I $(comp) LZ78C.o LZ78D.o InputBuffer.o LZWC.o LZWD.o  LZ77C.o Compressor.o  LZ77D.o HashTable.o Global.o Decompressor.o -o $(bench)/comp $<
 
 clear:
 	rm -f *.o 

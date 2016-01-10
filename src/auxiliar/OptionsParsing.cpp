@@ -37,7 +37,7 @@ struct option options[] =
 */
 IpmtConfiguration& parseOptions(int argc, char* argv[]) {
 	while(true){
-	    int c = getopt_long (argc, argv, "cp:i:", options, NULL);
+	    int c = getopt_long (argc, argv, "cp:i:h", options, NULL);
 	
 	    if(c == -1) 
 	    	break;
@@ -92,5 +92,55 @@ IpmtConfiguration& parseOptions(int argc, char* argv[]) {
 }
 
 void printHelpMessage() {
-	printf("TODO: Mensagem de ajuda\n");
+	printf("###############################################################################\n");          
+	printf("                          FUNCIONALIDADES BÁSICAS\n");
+	printf("              \n");
+	printf("Construção de um índice:\n");
+	printf("    iptm index arquivo_de_texto.txt\n");
+	printf("essa opção gera o arquivo de índice: arquivo_de_texto.txt.idx\n");
+	printf("\n");
+	printf("Busca de padrões em um índice:\n");
+	printf("  ipmt search padrao arquivo_de_indice\n");
+	printf("    ou\n");
+	printf("  iptm search -p arquivo_de_padroes arquivo_de_indice\n");
+	printf("###############################################################################\n");
+	printf("                          OPÇÕES DISPONÍVEIS\n");
+	printf("\n");
+	printf("Para a construção de índice:\n");
+	printf(" --indextype               Define o tipo de índice a ser criado. Os \n");
+	printf("                           valores possíveis são: \n");
+	printf("                           suffixtree (padrão), suffixtree2 e suffixarray\n");
+	printf("\n");
+	printf(" --compression             Define o algoritmo de compressão utilizado.\n");
+	printf("                           Os valores possíveis são:\n");
+	printf("                           lz77, lz78, lzw (padrão) e none\n");
+	printf("\n");  
+	printf(" --wl                      Define o tamanho da janela de lookahead\n"); 
+	printf("                           do algoritmo lz77. Valor padrão: 1024\n");
+	printf("\n");
+	printf(" --wb                      Define o tamanho da janela de buffer\n");
+	printf("                           do algoritmo lz77. Valor padrão: 16\n");
+	printf("\n");
+	printf(" --level                   Define a qualidade da compressão dos \n");
+	printf("                           algoritmos lz78 e lzw. Os valores possíveis\n");
+	printf("                           são:\n");
+	printf("                               0 -> compressão mais rápida\n");
+	printf("                               1 (padrão)\n");
+	printf("                               2 -> melhor compressão \n");
+	printf("\n");
+	printf(" --dotfile                 Arquivo onde serão salvos as etapas\n");
+	printf("                           intermediárias da construção da árvore de\n");
+	printf("                           sufixos em formato dot.\n");
+	printf("\n");
+	printf("Para a busca de padrões:\n");
+	printf("\n");
+	printf(" -c, --count               A ferramenta apenas reporta a quantidade de \n");
+	printf("                           ocorrências encontradas. Essa flag é desligada\n");
+	printf("                           por padrão, ou seja, a ferramenta imprime\n");
+	printf("                           as linhas das ocorrências por padrão.\n");
+	printf("\n");
+	printf(" -p, --pattern             Define um arquivo fonte de padrões, um em cada\n");
+	printf("                           linha.\n");
+	printf("Geral:\n");
+	printf(" -h, --help                Exibe uma mensagem de ajuda\n");    					
 }

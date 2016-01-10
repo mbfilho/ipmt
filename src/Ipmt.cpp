@@ -130,7 +130,7 @@ int main(int argc, char* argv[]){
 		printHelpMessage();
 		exit(0);
 	} else if(!config.validateConfig()) {
-		printHelpMessage();
+		printf("Execute 'ipmt --help' para mais informações de uso.\n");
 		exit(1);
 	}
 	
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]){
 	} else {
 		index = loadIndex(config);
 		if(config.interrupt == 2) {
-			printf("Interrompendo após compressão\n");
+			printf("Interrompendo após descompressão\n");
 			return 0;
 		}
 		for(int i = 0; i < config.patterns.size(); ++i){

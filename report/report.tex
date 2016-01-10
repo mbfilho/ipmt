@@ -48,7 +48,7 @@ A interface da nossa ferramenta possui os requisitos mínimos exigidos na especi
 \end{enumerate}
 
 
-\subsection{Decisões de Implementação Relevantes}
+\subsection{Detalhes de Implementação Relevantes}
 
 \subsubsection{Árvore de Sufixos}
 
@@ -65,6 +65,22 @@ Naturalmente precisamos serializar a árvore de modo a conseguir remontá-la pos
 Indicamos o final da lista de adjacência de um vértice com um \textit{bit} 1. Ou seja, toda vez que um vértice deixa a fila de busca, seus filhos são armazenados seguidos de um \textit{bit} 1. Como consequência, quando um vértice entra na fila temos também que precedê-lo de um \textit{bit} 0. Com isso a reconstrução da árvore fica fácil. Toda vez que lermos um 0 no arquivo, sabemos que devemos ler um vértice e colocá-lo na fila. Seu pai na árvore será o vértice na cabeça da fila. Toda vez que lermos um 1 no arquivo sabemos que a lista de adjacência do vértice na cabeça da fila acabou e que, portanto, ele deve ser removido. 
 
 Após esse processamento, na reconstrução da árvore, precisamos também calcular o campo \textit{leaves} de cada nó. Esse campo indica quantas folhas existem na subárvore enraizada em um determinado nó. Tudo o que precisamos fazer, nesse caso, é varrer os vértices da árvore começando no último vértice do vetor e indo até o primeiro (a raiz). Isso funciona porque a árvore é armazenada em uma ordem topológica adequada. Ou seja, todos os filhos de um determinado nó estão em uma posição de índice superior no vetor de vértices (ou seja, à sua ``direita'').
+
+\subsubsection{Árvores Intermediárias}
+
+Nossa ferramenta possibilita que as árvores intermediárias formadas durante o processo de construção da árvore de sufixos sejam imprimidas em formato \textit{dot}. Essa funcionalidade foi especialmente útil para encontrar erros durante a implementação da árvore de sufixos.
+
+Ela deve ser utilizada apenas com cadeias pequenas, pois ela acaba aumentando a complexidade da construção. Em particular, nela são impressas os rótulos das arestas como cadeias, e não inteiros. Ilustramos uma dessas árvores intermediárias na \figref{fig:tree}. Ela foi gerada a partir do comando \textit{dot -T png mississippi.dot -O}.
+
+\begin{figure}
+\begin{center}
+	{\centering Árvore de Sufixos Intermediária\par}
+	\includegraphics[width=.5\textwidth]{images/tree}
+\end{center}
+
+\caption{Árvore gerada após a penúltima etapa na construção da árvore referente à cadeia \textit{mississippi\#}. As setas vermelhas tracejadas são os \textit{suffix links}.}
+\label{fig:tree}
+\end{figure}
 
 \subsection{Árvore de Sufixos 2}
 
@@ -100,11 +116,13 @@ Mantivemos as duas implementações porque essa nova estratégia, embora mais ec
 
 De maneira semelhante da que fizemos com a árvore de sufixos, tentamos separar bem os campos do \textit{array} de sufixos para que instanciássemos apenas aqueles que fossem ser utilizados.
 
-Utilizamos um algoritmo de ordenação linear, o \textit{radix sort}, para alcançar uma implementação de custo $O(n\log(n))$.
+Utilizamos um algoritmo de ordenação linear, o \textit{radix sort}, para alcançar uma implementação de custo $O(n\log(n))$. Esse custo vem da série de $\lceil\log(n)\rceil$ ordenações que são feitas. Notamos, no entanto, que o \textit{array} de sufixos pode ser completamente construído antes que essa série seja completada. Isso ocorre quando todos os elementos do vetor $P$ de determinada etapa são distintos. Isso certamente ocorre após as $\lceil\log(n)\rceil$ ordenações, mas pode ocorrer antes a depender das características específicas do texto.
 
-O algoritmo visto no curso, e por nós implementado, utiliza um vetor $P$ de tamanho $n\log(n)$. Durante a construção do \textit{array} de sufixos, no entanto, apenas as duas últimas posições interessam. Armazenar apenas essas linhas representa, portanto, uma grande economia de memória. No entanto \textit{todo} o vetor $P$ é exigido para o cálculo dos auxiliares \textit{lLcp} e \textit{rLcp}.
+Durante a construção do \textit{array} de sufixos apenas as duas últimas linhas do vetor $P$ interessam. Armazenar apenas essas linhas representa, portanto, uma grande economia de memória. No entanto \textit{todo} o vetor $P$ é exigido para o cálculo dos auxiliares \textit{lLcp} e \textit{rLcp}.
 
 Para evitar manter todo o vetor $P$ utilizamos uma estratégia diferente para a construção dos vetores auxiliares. Primeiramente definimos o vetor \textit{lcp} de forma que $lcp[i]$ é o maior prefixo comum entre os sufixos $sa[i]$ e $sa[i-1]$. Porque ele guarda o $lcp$ de sufixos \textit{consecutivos} no \textit{array} de sufixos, conseguimos construir o vetor $lcp$ em tempo linear. Note que o maior prefixo comum entre dois sufixos $sa[j]$ e $sa[k]$ quaisquer é o menor valor entre $lcp[j+1]$ e $lcp[k]$, supondo que $j+1 \leq k$. Com essa observação, podemos utilizar uma estratégia do tipo \textit{dividir para conquistar} para preencher os valores de \textit{lLcp} e \textit{rLcp}. Para tanto implementamos uma função recursiva que simula todos os intervalos válidos de uma busca binária. O menor valor de $lcp$ contido em determinado intervalo é calculado recursivamente. Essa função gera no máximo $2n$ chamadas recursivas e, portanto, monta os vetores auxiliares em tempo linear.
+
+Além do custo linear, outra vantagem dessa estratégia é ser independente do algoritmo utilizado para a construção do \textit{array} de sufixos.
 
 Como a construção dos vetores \textit{lLcp} e \textit{rLcp} tem custo linear, nós podemos salvar no arquivo de índice apenas o \textit{array} de sufixos (e o texto original, naturalmente). Os inteiros do \textit{array} de sufixos são limitados pelo valor $n$ e, portanto, precisam de $\log(n)$ \textit{bits} para serem representados. 
 

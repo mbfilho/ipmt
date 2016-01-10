@@ -9,7 +9,7 @@ por:
 ###############################################################################
 							INSTALAÇÃO
 
-Acesso o diretório ipmt por um terminal e execute o comando:
+Acesse o diretório ipmt por um terminal e execute o comando:
 	make
 um diretório ipmt/bin será criado e conterá a ferramenta ipmt
 
